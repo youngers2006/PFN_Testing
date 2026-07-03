@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from scipy.stats import t
+from scipy.stats import multivariate_t
 import os
 
 from typing import Optional, Dict, Any
@@ -40,13 +40,18 @@ class RFFSampler:
             # RBF Kernel
             self.omegas = torch.as_tensor(np.random.normal(size=(self.num_features, self.input_dim))) / self.lengthscale
         elif self.kernel == "Matern52":
-            # Matern5/2 Kernel
-            self.omegas = torch.as_tensor(t.rvs(df=5, size=(self.num_features, self.input_dim))) / self.lengthscale
+            # Matern 5/2 Kernel
+            self.omegas = torch.as_tensor(multivariate_t.rvs(df=5, size=(self.num_features, self.input_dim))) / self.lengthscale
+        elif self.kernel == "Matern32":
+            # Matern 3/2 Kernel
+            self.omegas = torch.as_tensor(multivariate_t.rvs(df=3, size=(self.num_features, self.input_dim))) / self.lengthscale
+        elif self.kernel == "Matern12":
+            # Matern 1/2 Kernel
+            self.omegas = torch.as_tensor(multivariate_t.rvs(df=1, size=(self.num_features, self.input_dim))) / self.lengthscale
 
         self.phi = torch.rand(self.num_features, dtype=torch.float64) * 2 * np.pi
         self.weights = torch.randn(self.output_dim, self.num_features, dtype=torch.float64)
         self.rff_scaling = torch.sqrt(torch.tensor(2.0 / self.num_features, dtype=torch.float64))
-
 
     def sample(self, x_targets: torch.Tensor):
         """
