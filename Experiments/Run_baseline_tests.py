@@ -7,55 +7,120 @@ from botorch.acquisition import qLogExpectedImprovement
 from botorch.optim import optimize_acqf_discrete
 from Experiment_fns import Experiment_GP, Experiment_PFN
 from Aquisition_sampling import generate_sobol_points
+import pfns4bo
+from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 from tqdm import tqdm
 from RFF import RFFSampler
 
 def main():
+    # Save paths
+    filepath_problem = 'hp'
+    device = 'cuda'
+
     # Experiments parameters
     n_repeats = 21
     N_iters = 50
-    features = 2000
-    x_dim = 1
+    features = 10000
+    x_dims = [2, 5, 10]
     n_fns = 1
     ls = 1.0
-    bounds = torch.Tensor([[0.0], [1.0]])
+    bounds_list = []
+    bounds_list.append(torch.Tensor([[0.0, 0.0], [1.0, 1.0]], device=device))
+    bounds_list.append(torch.Tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], device=device))
+    bounds_list.append(torch.Tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], device=device))
     n_samples = 100000
     n_init = 20
     seed = 42
-    device = 'cuda'
 
-    sobol_acq_points = generate_sobol_points(
-        bounds, 
-        n_samples, 
-        seed, 
-        device
-    )
+    # Initialise storage
+    x_query_store = [torch.zeros((2, n_repeats, N_iters, d), dtype=torch.float32, device='cpu') for d in x_dims]
+    x_init_store = [torch.zeros((2, n_repeats, n_init, d), dtype=torch.float32, device='cpu') for d in x_dims]
 
-    for i in tqdm(range(n_repeats), desc="Running Experiments ..."):
-        # Draw from Matern32
-        rff_sampler = RFFSampler(
-            num_features=features, 
-            input_dim=x_dim,
-            number_of_functions=n_fns, 
-            lengthscale=ls, 
-            kernel="Matern32"
+    y_true_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+    y_init_store = torch.zeros((3, 2, n_repeats, n_init, n_fns), dtype=torch.float32, device='cpu')
+    y_best_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+    mu_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+    var_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+    alpha_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+
+    # Create PFN
+    model_path = pfns4bo.hebo_plus_model
+    pfn = TransformerBOMethod(torch.load(model_path, weights_only=False), device='cuda')
+
+    for k in range(3):
+        x_dim = x_dims[k]
+        bounds = bounds_list[k]
+
+        sobol_acq_points = generate_sobol_points(
+            bounds, 
+            n_samples, 
+            seed, 
+            device
         )
-        rff_sampler.omegas = rff_sampler.omegas.reshape(rff_sampler.num_features, rff_sampler.input_dim)
+        
+        for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k}"):
+            # Draw from Matern32
+            rff_sampler = RFFSampler(
+                num_features=features, 
+                input_dim=x_dim,
+                number_of_functions=n_fns, 
+                lengthscale=ls, 
+                kernel="Matern32"
+            )
+            rff_sampler.omegas = rff_sampler.omegas.reshape(
+                rff_sampler.num_features, rff_sampler.input_dim
+            )
 
-        # Sample space
-        x_train = torch.linspace(bounds[0], bounds[1], n_init, dtype=torch.float64).reshape(-1, 1)
+            # Save RFF function draw
+            rff_sampler.save_problem(filepath_problem, bounds[0], bounds[1])
 
-        # Run GP experiment
-        x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr, R_arr = Experiment_GP(
-            rff_sampler, x_train, N_iters, sobol_acq_points
-        )
+            # Sample space
+            x_train = bounds[0] + (bounds[1] - bounds[0]) * torch.rand(
+                (n_init, x_dim), dtype=torch.float64, device=device
+            )
 
-        # Run PFN experiment
-        x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr, R_arr = Experiment_PFN(
-            rff_sampler, x_train, N_iters, sobol_acq_points
-        )
+            # Run GP experiment
+            x_query_arr_GP, x_init_GP, y_true_arr_GP, y_init_GP, y_best_arr_GP, mu_arr_GP, var_arr_GP, alpha_arr_GP = Experiment_GP(
+                rff_sampler, x_train, N_iters, sobol_acq_points
+            )
 
-        # Store Data
+            # Run PFN experiment
+            x_query_arr_PFN, x_init_PFN, y_true_arr_PFN, y_init_PFN, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN = Experiment_PFN(
+                pfn, rff_sampler, x_train, N_iters, sobol_acq_points
+            )
+
+            # Store Data (in_dim, method, test_iter, opt_iter, data)
+            x_query_store[k][0, i, :, :] = x_query_arr_GP.cpu()
+            x_init_store[k][0, i, :, :] = x_init_GP.cpu()
+            y_true_store[k, 0, i, :, :] = y_true_arr_GP.cpu()
+            y_init_store[k, 0, i, :, :] = y_init_GP.cpu()
+            y_best_store[k, 0, i, :, :] = y_best_arr_GP.cpu()
+            mu_store[k, 0, i, :, :] = mu_arr_GP.cpu()
+            var_store[k, 0, i, :, :] = var_arr_GP.cpu()
+            alpha_store[k, 0, i, :, :] = alpha_arr_GP.cpu()
+
+            x_query_store[k][1, i, :, :] = x_query_arr_PFN.cpu()
+            x_init_store[k][1, i, :, :] = x_init_PFN.cpu()
+            y_true_store[k, 1, i, :, :] = y_true_arr_PFN.cpu()
+            y_init_store[k, 1, i, :, :] = y_init_PFN.cpu()
+            y_best_store[k, 1, i, :, :] = y_best_arr_PFN.cpu()
+            mu_store[k, 1, i, :, :] = mu_arr_PFN.cpu()
+            var_store[k, 1, i, :, :] = var_arr_PFN.cpu()
+            alpha_store[k, 1, i, :, :] = alpha_arr_PFN.cpu()
+    
+    # Save all data
+    data_dict = {
+        "x_query": x_query_store,
+        "x_init": x_init_store,
+        "y_true": y_true_store,
+        "y_init": y_init_store,
+        "y_best": y_best_store,
+        "mu": mu_store,
+        "var": var_store,
+        "alpha": alpha_store,
+        "seed": seed
+    }
+    torch.save(data_dict, "experimental_results.pt")
     return 0
 
 if __name__ == '__main__':

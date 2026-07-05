@@ -16,8 +16,8 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
     y_train = rff_sampler.sample(x_train)
 
     # Record initial data
-    x_init = x_train
-    y_init = y_train
+    x_init = x_train.clone().detach()
+    y_init = y_train.clone().detach()
 
     # Initial storage
     x_query_arr = torch.zeros(N_iters, x_train.shape[1])
@@ -26,7 +26,6 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
     mu_arr = torch.zeros(N_iters, y_train.shape[1])
     var_arr = torch.zeros(N_iters, y_train.shape[1])
     alpha_arr = torch.zeros(N_iters, 1)
-    R_arr = torch.zeros(N_iters, y_train.shape[1])
 
     # BO test
     for i in tqdm(range(N_iters)):
@@ -52,19 +51,15 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
         x_train = torch.cat([x_train, next_x])
         y_train = torch.cat([y_train, next_y])
 
-        # Compute Regret
-        Regret = next_y - f_best
-
         # Record data
-        x_query_arr[i] = next_x
-        y_true_arr[i] = next_y
-        y_best_arr[i] = f_best if f_best > next_y else next_y
-        mu_arr[i] = candidate_mean
-        var_arr[i] = candidate_var
-        alpha_arr[i] = acq_value
-        R_arr[i] = Regret
+        x_query_arr[i, :] = next_x
+        y_true_arr[i, :] = next_y
+        y_best_arr[i, :] = y_train.max()
+        mu_arr[i, :] = candidate_mean
+        var_arr[i, :] = candidate_var
+        alpha_arr[i, :] = acq_value
 
-    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr, R_arr
+    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr
 
 def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
 
@@ -72,8 +67,8 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
     y_train = rff_sampler.sample(x_train)
 
     # Record initial data
-    x_init = x_train
-    y_init = y_train
+    x_init = x_train.clone().detach()
+    y_init = y_train.clone().detach()
 
     # Initial storage
     x_query_arr = torch.zeros(N_iters, x_train.shape[1])
@@ -82,7 +77,6 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
     mu_arr = torch.zeros(N_iters, y_train.shape[1])
     var_arr = torch.zeros(N_iters, y_train.shape[1])
     alpha_arr = torch.zeros(N_iters, 1)
-    R_arr = torch.zeros(N_iters, y_train.shape[1])
 
     # BO test
     for i in tqdm(range(N_iters)):
@@ -104,21 +98,12 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
         x_train = torch.cat([x_train, next_x])
         y_train = torch.cat([y_train, next_y])
 
-        # Evaluate and add the new point to the training set
-        next_y = rff_sampler.sample(next_x)
-        x_train = torch.cat([x_train, next_x])
-        y_train = torch.cat([y_train, next_y])
-
-        # Compute Regret
-        Regret = next_y - f_best
-
         # Record data
-        x_query_arr[i] = next_x
-        y_true_arr[i] = next_y
-        y_best_arr[i] = f_best if f_best > next_y else next_y
-        mu_arr[i] = candidate_mean
-        var_arr[i] = candidate_var
-        alpha_arr[i] = acq_value
-        R_arr[i] = Regret
+        x_query_arr[i, :] = next_x
+        y_true_arr[i, :] = next_y
+        y_best_arr[i, :] = y_train.max()
+        mu_arr[i, :] = candidate_mean
+        var_arr[i, :] = candidate_var
+        alpha_arr[i, :] = acq_value
 
-    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr, R_arr
+    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr
