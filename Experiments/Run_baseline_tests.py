@@ -29,21 +29,20 @@ def main():
     features = 10000
     x_dims = [2, 5, 10]
     n_fns = 1
-    ls = 1.0
+    ls = 0.1
     bounds_list = []
     bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     n_samples = 100000
-    n_init = 20
     seed = 42
 
     # Initialise storage
     x_query_store = [torch.zeros((3, n_repeats, N_iters, d), dtype=torch.float64, device='cpu') for d in x_dims]
-    x_init_store = [torch.zeros((3, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    x_init_store = [torch.zeros((3, n_repeats, 5 * d, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    y_init_store = [torch.zeros((3, 3, n_repeats, 5 * d, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
 
     y_true_store = torch.zeros((3, 3, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
-    y_init_store = torch.zeros((3, 3, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu')
     y_best_store = torch.zeros((3, 3, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
     mu_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
     var_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
@@ -56,6 +55,7 @@ def main():
     for k in range(3):
         x_dim = x_dims[k]
         bounds = bounds_list[k]
+        n_init = 5 * x_dim
 
         sobol_acq_points = generate_sobol_points(
             bounds, 
@@ -104,8 +104,8 @@ def main():
             # Store Data (in_dim, method, test_iter, opt_iter, data)
             x_query_store[k][0, i, :, :] = x_query_arr_GP.detach().cpu()
             x_init_store[k][0, i, :, :] = x_init_GP.detach().cpu()
+            y_init_store[k][0, i, :, :] = y_init_GP.detach().cpu()
             y_true_store[k, 0, i, :, :] = y_true_arr_GP.detach().cpu()
-            y_init_store[k, 0, i, :, :] = y_init_GP.detach().cpu()
             y_best_store[k, 0, i, :, :] = y_best_arr_GP.detach().cpu()
             mu_store[k, 0, i, :, :] = mu_arr_GP.detach().cpu()
             var_store[k, 0, i, :, :] = var_arr_GP.detach().cpu()
@@ -113,8 +113,8 @@ def main():
 
             x_query_store[k][1, i, :, :] = x_query_arr_PFN.detach().cpu()
             x_init_store[k][1, i, :, :] = x_init_PFN.detach().cpu()
+            y_init_store[k][1, i, :, :] = y_init_PFN.detach().cpu()
             y_true_store[k, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
-            y_init_store[k, 1, i, :, :] = y_init_PFN.detach().cpu()
             y_best_store[k, 1, i, :, :] = y_best_arr_PFN.detach().cpu()
             mu_store[k, 1, i, :, :] = mu_arr_PFN.detach().cpu()
             var_store[k, 1, i, :, :] = var_arr_PFN.detach().cpu()
@@ -122,8 +122,8 @@ def main():
 
             x_query_store[k][2, i, :, :] = x_query_arr_rs.detach().cpu()
             x_init_store[k][2, i, :, :] = x_init_rs.detach().cpu()
+            y_init_store[k][2, i, :, :] = y_init_rs.detach().cpu()
             y_true_store[k, 2, i, :, :] = y_true_arr_rs.detach().cpu()
-            y_init_store[k, 2, i, :, :] = y_init_rs.detach().cpu()
             y_best_store[k, 2, i, :, :] = y_best_arr_rs.detach().cpu()
     
     # Save all data
