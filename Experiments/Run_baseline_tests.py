@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 import torch
 import gpytorch
 import botorch
@@ -5,7 +7,7 @@ from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
 from botorch.optim import optimize_acqf_discrete
-from Experiment_fns import Experiment_GP, Experiment_PFN
+from Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random
 from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
@@ -14,7 +16,11 @@ from RFF import RFFSampler
 
 def main():
     # Save paths
-    filepath_problem = 'hp'
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_save_dir = f"results/run_{timestamp}"
+    os.makedirs(base_save_dir, exist_ok=True)
+
+    # Device
     device = 'cuda'
 
     # Experiments parameters
@@ -25,23 +31,23 @@ def main():
     n_fns = 1
     ls = 1.0
     bounds_list = []
-    bounds_list.append(torch.Tensor([[0.0, 0.0], [1.0, 1.0]], device=device))
-    bounds_list.append(torch.Tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], device=device))
-    bounds_list.append(torch.Tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], device=device))
+    bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
+    bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
+    bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     n_samples = 100000
     n_init = 20
     seed = 42
 
     # Initialise storage
-    x_query_store = [torch.zeros((2, n_repeats, N_iters, d), dtype=torch.float32, device='cpu') for d in x_dims]
-    x_init_store = [torch.zeros((2, n_repeats, n_init, d), dtype=torch.float32, device='cpu') for d in x_dims]
+    x_query_store = [torch.zeros((3, n_repeats, N_iters, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    x_init_store = [torch.zeros((3, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
 
-    y_true_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
-    y_init_store = torch.zeros((3, 2, n_repeats, n_init, n_fns), dtype=torch.float32, device='cpu')
-    y_best_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
-    mu_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
-    var_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
-    alpha_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float32, device='cpu')
+    y_true_store = torch.zeros((3, 3, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
+    y_init_store = torch.zeros((3, 3, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu')
+    y_best_store = torch.zeros((3, 3, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
+    mu_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
+    var_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
+    alpha_store = torch.zeros((3, 2, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu')
 
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
@@ -72,11 +78,17 @@ def main():
             )
 
             # Save RFF function draw
+            filepath_problem = f"{base_save_dir}/dim_{x_dim}/repeat_{i}"
             rff_sampler.save_problem(filepath_problem, bounds[0], bounds[1])
 
             # Sample space
             x_train = bounds[0] + (bounds[1] - bounds[0]) * torch.rand(
                 (n_init, x_dim), dtype=torch.float64, device=device
+            )
+
+            # Run random sampling
+            x_query_arr_rs, x_init_rs, y_true_arr_rs, y_init_rs, y_best_arr_rs = Experiment_Random(
+                rff_sampler, x_train, bounds, N_iters
             )
 
             # Run GP experiment
@@ -90,23 +102,29 @@ def main():
             )
 
             # Store Data (in_dim, method, test_iter, opt_iter, data)
-            x_query_store[k][0, i, :, :] = x_query_arr_GP.cpu()
-            x_init_store[k][0, i, :, :] = x_init_GP.cpu()
-            y_true_store[k, 0, i, :, :] = y_true_arr_GP.cpu()
-            y_init_store[k, 0, i, :, :] = y_init_GP.cpu()
-            y_best_store[k, 0, i, :, :] = y_best_arr_GP.cpu()
-            mu_store[k, 0, i, :, :] = mu_arr_GP.cpu()
-            var_store[k, 0, i, :, :] = var_arr_GP.cpu()
-            alpha_store[k, 0, i, :, :] = alpha_arr_GP.cpu()
+            x_query_store[k][0, i, :, :] = x_query_arr_GP.detach().cpu()
+            x_init_store[k][0, i, :, :] = x_init_GP.detach().cpu()
+            y_true_store[k, 0, i, :, :] = y_true_arr_GP.detach().cpu()
+            y_init_store[k, 0, i, :, :] = y_init_GP.detach().cpu()
+            y_best_store[k, 0, i, :, :] = y_best_arr_GP.detach().cpu()
+            mu_store[k, 0, i, :, :] = mu_arr_GP.detach().cpu()
+            var_store[k, 0, i, :, :] = var_arr_GP.detach().cpu()
+            alpha_store[k, 0, i, :, :] = alpha_arr_GP.detach().cpu()
 
-            x_query_store[k][1, i, :, :] = x_query_arr_PFN.cpu()
-            x_init_store[k][1, i, :, :] = x_init_PFN.cpu()
-            y_true_store[k, 1, i, :, :] = y_true_arr_PFN.cpu()
-            y_init_store[k, 1, i, :, :] = y_init_PFN.cpu()
-            y_best_store[k, 1, i, :, :] = y_best_arr_PFN.cpu()
-            mu_store[k, 1, i, :, :] = mu_arr_PFN.cpu()
-            var_store[k, 1, i, :, :] = var_arr_PFN.cpu()
-            alpha_store[k, 1, i, :, :] = alpha_arr_PFN.cpu()
+            x_query_store[k][1, i, :, :] = x_query_arr_PFN.detach().cpu()
+            x_init_store[k][1, i, :, :] = x_init_PFN.detach().cpu()
+            y_true_store[k, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
+            y_init_store[k, 1, i, :, :] = y_init_PFN.detach().cpu()
+            y_best_store[k, 1, i, :, :] = y_best_arr_PFN.detach().cpu()
+            mu_store[k, 1, i, :, :] = mu_arr_PFN.detach().cpu()
+            var_store[k, 1, i, :, :] = var_arr_PFN.detach().cpu()
+            alpha_store[k, 1, i, :, :] = alpha_arr_PFN.detach().cpu()
+
+            x_query_store[k][2, i, :, :] = x_query_arr_rs.detach().cpu()
+            x_init_store[k][2, i, :, :] = x_init_rs.detach().cpu()
+            y_true_store[k, 2, i, :, :] = y_true_arr_rs.detach().cpu()
+            y_init_store[k, 2, i, :, :] = y_init_rs.detach().cpu()
+            y_best_store[k, 2, i, :, :] = y_best_arr_rs.detach().cpu()
     
     # Save all data
     data_dict = {
@@ -120,7 +138,9 @@ def main():
         "alpha": alpha_store,
         "seed": seed
     }
-    torch.save(data_dict, "experimental_results.pt")
+    final_save_path = os.path.join(base_save_dir, "experimental_results.pt")
+    torch.save(data_dict, final_save_path)
+    print(f"Experiment complete. All data saved to: {base_save_dir}")
     return 0
 
 if __name__ == '__main__':

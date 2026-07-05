@@ -4,6 +4,7 @@ from scipy.stats import multivariate_t
 import os
 
 from typing import Optional, Dict, Any
+from Utils import to_numpy
 
 class RFFSampler:
     """
@@ -63,9 +64,16 @@ class RFFSampler:
         Returns:
             torch.Tensor: sampled values in objective space
         """
+        device, dtype = x_targets.device, x_targets.dtype
+        
+        # Cast RFF parameters to match incoming target points safely
+        omegas = self.omegas.to(device=device, dtype=dtype)
+        phi = self.phi.to(device=device, dtype=dtype)
+        weights = self.weights.to(device=device, dtype=dtype)
+        scaling = self.rff_scaling.to(device=device, dtype=dtype)
 
-        Z_target = self.rff_scaling * torch.cos(torch.matmul(x_targets, self.omegas.T) + self.phi)
-        output_at_target = Z_target @ self.weights.T
+        Z_target = scaling * torch.cos(torch.matmul(x_targets, omegas.T) + phi)
+        output_at_target = Z_target @ weights.T
         return output_at_target
 
     def load_problem(
@@ -148,6 +156,6 @@ class RFFSampler:
              self.output_dim is not None])
 
         os.makedirs(filepath, exist_ok=True)
-        np.savez(f'{filepath}/problem.npz', omegas=self.omegas, weights=self.weights, phi=self.phi,
-                 num_features=self.num_features, lengthscale=self.lengthscale, input_dim=self.input_dim, 
-                 output_dim=self.output_dim, lb=lb, ub=ub)
+        np.savez(f'{filepath}/problem.npz', omegas=to_numpy(self.omegas), weights=to_numpy(self.weights), phi=to_numpy(self.phi),
+                 num_features=to_numpy(self.num_features), lengthscale=to_numpy(self.lengthscale), input_dim=to_numpy(self.input_dim), 
+                 output_dim=to_numpy(self.output_dim), lb=to_numpy(lb), ub=to_numpy(ub))
