@@ -31,7 +31,7 @@ def main():
     n_fns = 1
     bounds_list = []
     bounds_list.append(torch.tensor([[0.0], [1.0]], dtype=torch.float64, device=device))
-    n_samples = 100000
+    n_samples = 1000
     seed = 42
     seed_init = 10
     kernel = "Matern32"
