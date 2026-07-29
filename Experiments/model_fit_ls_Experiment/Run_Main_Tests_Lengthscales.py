@@ -24,7 +24,7 @@ def main():
 
     # Experiments parameters
     n_repeats = 21
-    n_methods = 3
+    n_methods = 2
     n_methods_UQ = 2
     features = 10000
     x_dims = [1]
@@ -102,7 +102,7 @@ def main():
                     rff_sampler, x_train, y_train, bounds, n_samples=n_samples, device=device
                 )
     
-                # Test GP model fit
+                # Test PFN model fit
                 mu_arr_PFN, var_arr_PFN, y_true_arr_PFN, x_query_arr_PFN = plot_pfn_variance_surface(
                     pfn, rff_sampler, x_train, y_train, bounds, n_samples=n_samples, device=device
                 )
