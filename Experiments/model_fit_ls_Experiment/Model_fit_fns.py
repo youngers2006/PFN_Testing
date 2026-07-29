@@ -68,8 +68,8 @@ def plot_GP_variance_surface(rff_sampler, train_x, train_y, bounds, n_samples=10
         mu_list.append(mu_actual.item())
         var_list.append(var_actual.item())
         
-    mu_arr = torch.tensor(mu_list)
-    var_arr = torch.tensor(var_list)
+    mu_arr = torch.tensor(mu_list).unsqueeze(-1)
+    var_arr = torch.tensor(var_list).unsqueeze(-1)
     
     return mu_arr, var_arr, y_true, x_queries
     
@@ -111,7 +111,7 @@ def plot_pfn_variance_surface(pfn, rff_sampler, train_x, train_y, bounds, n_samp
         mu_list.append(mu_actual.item())
         var_list.append(var_actual.item())
         
-    mu_arr = torch.tensor(mu_list)
-    var_arr = torch.tensor(var_list)
+    mu_arr = torch.tensor(mu_list).unsqueeze(-1)
+    var_arr = torch.tensor(var_list).unsqueeze(-1)
     
     return mu_arr, var_arr, y_true, x_queries
