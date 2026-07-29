@@ -1,12 +1,6 @@
 import os
 from datetime import datetime
 import torch
-import gpytorch
-import botorch
-from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
-from botorch.acquisition import qLogExpectedImprovement
-from botorch.optim import optimize_acqf_discrete
 from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
@@ -17,7 +11,7 @@ from Model_fit_fns import plot_GP_variance_surface, plot_pfn_variance_surface
 def main():
     # Save paths
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_save_dir = f"results_LS_150/run_{timestamp}"
+    base_save_dir = f"LS_1D_varied_results/run_{timestamp}"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -46,10 +40,10 @@ def main():
     n_init = 100
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.001, 0.01, 0.05, 0.1385, 0.5, 2.0, 4.0]
+    lengthscales = [0.001, 0.01, 0.05, 0.1385, 0.4, 0.5, 0.8, 2.0, 4.0]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 7
+    n_tests = 9
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
