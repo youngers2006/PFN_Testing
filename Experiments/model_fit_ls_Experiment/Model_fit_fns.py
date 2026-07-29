@@ -86,9 +86,6 @@ def plot_pfn_variance_surface(pfn, rff_sampler, train_x, train_y, bounds, n_samp
     bounds = bounds.to(device)
     pfn.model.to(device)
     
-    if bounds.shape[1] != 2:
-        raise ValueError(f"Plotting requires exactly 2 input dimensions. Received bounds with dim {bounds.shape[1]}.")
-    
     # standardise
     train_y_scaled, mu_y, std_y = output_standardise(train_y)
     
