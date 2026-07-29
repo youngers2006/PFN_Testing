@@ -24,7 +24,6 @@ def plot_GP_variance_surface(rff_sampler, train_x, train_y, bounds, n_samples=10
     bounds = bounds.to(device)
     
     # create eval grid
-    n_samples = 1000
     x_queries = generate_sobol_points(bounds, n_samples, seed=42, device=device)
     y_true = rff_sampler.sample(x_queries)
     
