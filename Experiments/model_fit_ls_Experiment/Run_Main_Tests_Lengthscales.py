@@ -52,10 +52,10 @@ def main():
     np.random.seed(seed)
 
     # Initialise storage (test_n, dim_n, repeats_n, sample_n, size_n)
-    x_query_store = [torch.zeros((n_tests, n_methods, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
-    y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
-    mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
-    var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
+    x_query_store = [torch.zeros((n_tests, n_methods, n_repeats, n_samples, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
+    mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
+    var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     x_init_store =  [torch.zeros((n_tests, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
     y_init_store =  [torch.zeros((n_tests, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
 
