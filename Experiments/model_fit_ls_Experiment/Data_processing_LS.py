@@ -54,7 +54,7 @@ def compute_comparative_metrics(base_save_dir: str):
                     # Get ei
                     best_f = torch.max(y_init[k][test, rep, :, :])
                     sigma_sq = var_store[k][test, m_idx, rep, :, :]
-                    sigma_safe = torch.sqrt(torch.clamp(sigma_sq, min=1e-6))
+                    sigma_safe = torch.sqrt(torch.clamp(sigma_sq, min=1e-12))
                     mu = mu_store[k][test, m_idx, rep, :, :]
                     improvement = mu - best_f # Improvement with exploration term set to zero
                     Z = improvement / sigma_safe
