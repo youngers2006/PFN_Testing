@@ -21,7 +21,6 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     # Move data
     train_x = train_x.to(device)
     train_y = train_y.to(device)
-    bounds = bounds.to(device)
     
     mu_list = []
     var_list = []

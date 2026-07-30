@@ -45,7 +45,7 @@ def compute_comparative_metrics(base_save_dir: str):
                 for m_idx in range(n_methods):
                     # Calculate pred error
                     metrics["pred_error"][test, k, m_idx, rep, :, :] = abs(
-                        mu_store[k][test, m_idx, :, :] - y_true_store[k][test, m_idx, :, :]
+                        mu_store[k][test, m_idx, rep, :, :] - y_true_store[k][test, m_idx, rep, :, :]
                     )
                     metrics["total_error"][test, k, m_idx, rep, :, :] = torch.sum(
                         metrics["pred_error"][test, k, m_idx, rep, :, :], keepdim=True
