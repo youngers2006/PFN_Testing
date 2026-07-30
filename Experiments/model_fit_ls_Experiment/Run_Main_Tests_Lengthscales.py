@@ -96,15 +96,19 @@ def main():
                     device
                 )
                 y_train = rff_sampler.sample(x_train)
+
+                # create eval grid
+                x_queries = generate_sobol_points(bounds, n_samples, seed=42, device=device)
+                y_true = rff_sampler.sample(x_queries)
     
                 # Test GP model fit
-                mu_arr_GP, var_arr_GP, y_true_arr_GP, x_query_arr_GP = plot_GP_variance_surface(
-                    rff_sampler, x_train, y_train, bounds, n_samples=n_samples, device=device
+                mu_arr_GP, var_arr_GP, y_true_arr_GP = plot_GP_variance_surface(
+                    x_train, y_train, x_queries, y_true, n_samples=n_samples, device=device
                 )
     
                 # Test PFN model fit
-                mu_arr_PFN, var_arr_PFN, y_true_arr_PFN, x_query_arr_PFN = plot_pfn_variance_surface(
-                    pfn, rff_sampler, x_train, y_train, bounds, n_samples=n_samples, device=device
+                mu_arr_PFN, var_arr_PFN, y_true_arr_PFN = plot_pfn_variance_surface(
+                    pfn, x_train, y_train, x_queries, y_true, n_samples=n_samples, device=device
                 )
 
                 # Store initialising data
@@ -112,12 +116,12 @@ def main():
                 y_init_store[k][test, i, :, :] = y_train.detach().cpu()
                 
                 # Store Data (in_dim, test, method, repeat, sample, data)
-                x_query_store[k][test, 0, i, :, :] = x_query_arr_GP.detach().cpu()
+                x_query_store[k][test, 0, i, :, :] = x_queries.detach().cpu()
                 y_true_store[k][test, 0, i, :, :] = y_true_arr_GP.detach().cpu()
                 mu_store[k][test, 0, i, :, :] = mu_arr_GP.detach().cpu()
                 var_store[k][test, 0, i, :, :] = var_arr_GP.detach().cpu()
     
-                x_query_store[k][test, 1, i, :, :] = x_query_arr_PFN.detach().cpu()
+                x_query_store[k][test, 1, i, :, :] = x_queries.detach().cpu()
                 y_true_store[k][test, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
                 mu_store[k][test, 1, i, :, :] = mu_arr_PFN.detach().cpu()
                 var_store[k][test, 1, i, :, :] = var_arr_PFN.detach().cpu()

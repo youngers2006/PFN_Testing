@@ -12,7 +12,7 @@ from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
 
-def plot_GP_variance_surface(rff_sampler, train_x, train_y, bounds, n_samples=10000, device='cpu'):
+def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=10000, device='cpu'):
     """
     Evaluates 1000 points across a 2D space sequentially using eval_pfn.
     Plots the coordinates at (x_1, x_2, \mu) with point color mapped to \sigma^2.
@@ -22,10 +22,6 @@ def plot_GP_variance_surface(rff_sampler, train_x, train_y, bounds, n_samples=10
     train_x = train_x.to(device)
     train_y = train_y.to(device)
     bounds = bounds.to(device)
-    
-    # create eval grid
-    x_queries = generate_sobol_points(bounds, n_samples, seed=42, device=device)
-    y_true = rff_sampler.sample(x_queries)
     
     mu_list = []
     var_list = []
@@ -71,9 +67,9 @@ def plot_GP_variance_surface(rff_sampler, train_x, train_y, bounds, n_samples=10
     mu_arr = torch.tensor(mu_list).unsqueeze(-1)
     var_arr = torch.tensor(var_list).unsqueeze(-1)
     
-    return mu_arr, var_arr, y_true, x_queries
+    return mu_arr, var_arr, y_true
     
-def plot_pfn_variance_surface(pfn, rff_sampler, train_x, train_y, bounds, n_samples=10000, device='cpu'):
+def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_samples=10000, device='cpu'):
     """
     Evaluates 1000 points across a 2D space sequentially using eval_pfn.
     Plots the coordinates at (x_1, x_2, \mu) with point color mapped to \sigma^2.
@@ -82,15 +78,10 @@ def plot_pfn_variance_surface(pfn, rff_sampler, train_x, train_y, bounds, n_samp
     # Move data
     train_x = train_x.to(device)
     train_y = train_y.to(device)
-    bounds = bounds.to(device)
     pfn.model.to(device)
     
     # standardise
     train_y_scaled, mu_y, std_y = output_standardise(train_y)
-    
-    # create eval grid
-    x_queries = generate_sobol_points(bounds, n_samples, seed=42, device=device)
-    y_true = rff_sampler.sample(x_queries)
     
     mu_list = []
     var_list = []
@@ -114,4 +105,4 @@ def plot_pfn_variance_surface(pfn, rff_sampler, train_x, train_y, bounds, n_samp
     mu_arr = torch.tensor(mu_list).unsqueeze(-1)
     var_arr = torch.tensor(var_list).unsqueeze(-1)
     
-    return mu_arr, var_arr, y_true, x_queries
+    return mu_arr, var_arr, y_true
