@@ -47,15 +47,15 @@ def compute_comparative_metrics(base_save_dir: str):
                     metrics["pred_error"][test, k, m_idx, rep, :, :] = abs(
                         mu_store[k][test, m_idx, rep, :, :] - y_true_store[k][test, m_idx, rep, :, :]
                     )
-                    metrics["total_error"][test, k, m_idx, rep, :, :] = torch.sum(
-                        metrics["pred_error"][test, k, m_idx, rep, :, :], keepdim=True
+                    metrics["total_error"][test, k, m_idx, rep, :] = torch.sum(
+                        metrics["pred_error"][test, k, m_idx, rep, :, :]
                     )
 
                     # Get ei
                     best_f = torch.max(y_init[k][test, rep, :, :])
-                    sigma_sq = var_store[k][test, m_idx, :, :]
+                    sigma_sq = var_store[k][test, m_idx, rep, :, :]
                     sigma_safe = torch.sqrt(torch.clamp(sigma_sq, min=1e-6))
-                    mu = mu_store[k][test, m_idx, :, :]
+                    mu = mu_store[k][test, m_idx, rep, :, :]
                     improvement = mu - best_f # Improvement with exploration term set to zero
                     Z = improvement / sigma_safe
                     cdf = torch.special.ndtr(Z)
@@ -71,5 +71,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "LS_1D_varied_results/run_20260729_180254" 
+    base_dir = "LS_1D_varied_results/run_20260730_130530" 
     compute_comparative_metrics(base_dir)
