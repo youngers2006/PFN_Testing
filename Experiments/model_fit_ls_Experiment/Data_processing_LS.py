@@ -12,7 +12,6 @@ def compute_comparative_metrics(base_save_dir: str):
 
     # Extract
     y_true_store = data["y_true"]
-    x_query_store = data["x_query"]
     mu_store = data["mu"]
     var_store = data["var"]
     y_init = data["y_init"]
