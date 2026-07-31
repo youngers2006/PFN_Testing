@@ -21,29 +21,35 @@ def get_distortion_ratio(
     beta_param: float | torch.Tensor, 
     bounds: tuple[float, float] = (0.05, 0.95),
     device: str = "cpu"):
+
+    # Bounds must not be at edges of the distributions
     a, b = bounds
     alpha_t = torch.as_tensor(alpha, dtype=torch.float32, device=device)
     beta_t = torch.as_tensor(beta_param, dtype=torch.float32, device=device)
 
+    # Bounds are always candidates for min and max
     candidates = [
         torch.tensor(a, dtype=torch.float32, device=device),
         torch.tensor(b, dtype=torch.float32, device=device)
     ]
-    
+
+    # In certain situations the mode is a candidate
     if (alpha_t != 1.0) or (beta_t != 1.0):
         denom = alpha_t + beta_t - 2.0
         if torch.abs(denom) > 1e-12:
             x_crit = (alpha_t - 1.0) / denom
             if a <= x_crit <= b:
                 candidates.append(x_crit)
-                
+
+    # Ensure that candidates are tensors
     x_candidates = torch.stack(candidates)
-    
+
+    # Use beta PDF to get slope of CDF
     dist = Beta(alpha_t, beta_t)
     slopes = torch.exp(dist.log_prob(x_candidates))
-    
+
+    # Find the max and min then ensure the min is not 0 to prevent dbz error
     f_max = torch.max(slopes)
     f_min = torch.min(slopes)
     f_min = torch.clamp(f_min, min=1e-30)
-    
     return f_max / f_min
