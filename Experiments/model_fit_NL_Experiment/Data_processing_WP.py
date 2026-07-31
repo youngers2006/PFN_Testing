@@ -41,7 +41,7 @@ def compute_comparative_metrics(base_save_dir: str):
         beta = beta_arr[test]
 
         Dr = get_distortion_ratio(alpha, beta)
-        metrics["Distortion_ratio"] = Dr
+        metrics["Distortion_ratio"][test] = Dr
         
         # Loop through all dimension changes
         for k in tqdm(range(n_dims), desc="Computing Metrics per Dimension", leave=False):
