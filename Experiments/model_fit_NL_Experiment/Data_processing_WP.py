@@ -15,6 +15,8 @@ def compute_comparative_metrics(base_save_dir: str):
     mu_store = data["mu"]
     var_store = data["var"]
     y_init = data["y_init"]
+    alpha_arr = data["alpha_params"]
+    beta_arr = data["beta_params"]
 
     # Sizing
     n_dims = 1
@@ -22,17 +24,22 @@ def compute_comparative_metrics(base_save_dir: str):
     n_repeats = 21
     n_samples = 1000
     n_fns = 1
-    n_tests = 9
+    n_tests = 7
     
     # Initialize metric storage
     metrics = {
         "pred_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)), # GP & PFN only
         "total_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, 1)),
-        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1))
+        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1)),
+        "Distortion_ratio": torch.zeros((n_tests, 1))
     }
 
     # Loop through all tests
     for test in tqdm(range(n_tests), desc="Computing Metrics per test"):
+        alpha = alpha_arr[test]
+        beta = beta_arr[test]
+
+        
         
         # Loop through all dimension changes
         for k in tqdm(range(n_dims), desc="Computing Metrics per Dimension", leave=False):
