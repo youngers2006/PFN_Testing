@@ -80,5 +80,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "LS_1D_varied_results/run_20260730_130530" 
+    base_dir = "WP_1D_varied_results/run_20260731_120345" 
     compute_comparative_metrics(base_dir)
