@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
+from NL_warping import NL_warping, get_distortion_ratio
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
@@ -39,7 +40,8 @@ def compute_comparative_metrics(base_save_dir: str):
         alpha = alpha_arr[test]
         beta = beta_arr[test]
 
-        
+        Dr = get_distortion_ratio(alpha, beta)
+        metrics["Distortion_ratio"] = Dr
         
         # Loop through all dimension changes
         for k in tqdm(range(n_dims), desc="Computing Metrics per Dimension", leave=False):
