@@ -46,11 +46,11 @@ def main():
     variance_concentration = 0.8452
     variance_rate = 0.3993
     gamma_params = torch.tensor([lengthscale_concentration, lengthscale_rate, variance_concentration, variance_rate], device='cpu')
-    n_tests = 7
+    n_tests = 11
 
     # Warping Parameters
-    alpha_NL = [1.0, 2.0, 5.0, 10.0, 1.0, 1.0, 0.5]
-    beta_NL = [1.0, 2.0, 5.0, 10.0, 3.0, 10.0, 0.5]
+    alpha_NL = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 1.0, 1.0, 1.0, 1.0, 0.5]
+    beta_NL = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 3.0, 10.0, 12.0, 15.0, 0.5]
     alpha_params = torch.tensor(alpha_NL)
     beta_params = torch.tensor(beta_NL)
 
