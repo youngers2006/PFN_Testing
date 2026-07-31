@@ -63,6 +63,7 @@ def main():
     # Initialise storage (test_n, dim_n, repeats_n, sample_n, size_n)
     x_query_store = [torch.zeros((n_tests, n_methods, n_repeats, n_samples, d), dtype=torch.float64, device='cpu') for d in x_dims]
     y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
+    y_UW_store =    [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     x_init_store =  [torch.zeros((n_tests, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
@@ -111,6 +112,7 @@ def main():
                 # create eval grid
                 x_queries = generate_sobol_points(bounds, n_samples, seed=42, device=device)
                 y_true = rff_sampler.sample(NL_warping(x_queries, alpha, beta))
+                y_UW = rff_sampler.sample(x_queries)
     
                 # Test GP model fit
                 mu_arr_GP, var_arr_GP, y_true_arr_GP = plot_GP_variance_surface(
@@ -129,11 +131,13 @@ def main():
                 # Store Data (in_dim, test, method, repeat, sample, data)
                 x_query_store[k][test, 0, i, :, :] = x_queries.detach().cpu()
                 y_true_store[k][test, 0, i, :, :] = y_true_arr_GP.detach().cpu()
+                y_UW_store[k][test, 0, i, :, :] = y_UW.detach().cpu()
                 mu_store[k][test, 0, i, :, :] = mu_arr_GP.detach().cpu()
                 var_store[k][test, 0, i, :, :] = var_arr_GP.detach().cpu()
     
                 x_query_store[k][test, 1, i, :, :] = x_queries.detach().cpu()
                 y_true_store[k][test, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
+                y_UW_store[k][test, 1, i, :, :] = y_UW.detach().cpu()
                 mu_store[k][test, 1, i, :, :] = mu_arr_PFN.detach().cpu()
                 var_store[k][test, 1, i, :, :] = var_arr_PFN.detach().cpu()
     
@@ -142,6 +146,7 @@ def main():
         "x_init": x_init_store,
         "y_init": y_init_store,
         "x_query": x_query_store,
+        "y_UW": y_UW_store, 
         "y_true": y_true_store,
         "mu": mu_store,
         "var": var_store,
