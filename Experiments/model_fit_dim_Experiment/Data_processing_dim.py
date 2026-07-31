@@ -4,7 +4,6 @@ import numpy as np
 from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
-from NL_warping import NL_warping, get_distortion_ratio
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
@@ -16,32 +15,24 @@ def compute_comparative_metrics(base_save_dir: str):
     mu_store = data["mu"]
     var_store = data["var"]
     y_init = data["y_init"]
-    alpha_arr = data["alpha_params"]
-    beta_arr = data["beta_params"]
 
     # Sizing
-    n_dims = 1
+    n_dims = 11
     n_methods = 2
     n_repeats = 21
     n_samples = 1000
     n_fns = 1
-    n_tests = 11
+    n_tests = 1
     
     # Initialize metric storage
     metrics = {
         "pred_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)), # GP & PFN only
         "total_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, 1)),
-        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1)),
-        "Distortion_ratio": torch.zeros((n_tests, 1))
+        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1))
     }
 
     # Loop through all tests
     for test in tqdm(range(n_tests), desc="Computing Metrics per test"):
-        alpha = alpha_arr[test]
-        beta = beta_arr[test]
-
-        Dr = get_distortion_ratio(alpha, beta)
-        metrics["Distortion_ratio"] = Dr
         
         # Loop through all dimension changes
         for k in tqdm(range(n_dims), desc="Computing Metrics per Dimension", leave=False):
@@ -80,5 +71,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "WP_1D_varied_results/run_20260731_120345" 
+    base_dir = "dim_varied_results/run_20260731_120345" 
     compute_comparative_metrics(base_dir)
