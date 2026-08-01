@@ -101,7 +101,7 @@ def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_sample
         
         with torch.no_grad():
             mu_pred_scaled, var_pred_scaled = eval_pfn(
-                pfn, train_x, train_y_scaled, x_q, warping=warping
+                pfn, train_x, train_y_scaled, x_q
             )
         
         # unscale output
