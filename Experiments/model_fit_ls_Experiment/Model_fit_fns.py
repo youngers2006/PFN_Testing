@@ -68,7 +68,7 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     
     return mu_arr, var_arr, y_true
     
-def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_samples=10000, device='cpu'):
+def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_samples=10000, warping=False, device='cpu'):
     """
     Evaluates 1000 points across a 2D space sequentially using eval_pfn.
     Plots the coordinates at (x_1, x_2, \mu) with point color mapped to \sigma^2.
@@ -92,7 +92,9 @@ def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_sample
         x_q = x_queries[i]
         
         with torch.no_grad():
-            mu_pred_scaled, var_pred_scaled = eval_pfn(pfn, train_x, train_y_scaled, x_q)
+            mu_pred_scaled, var_pred_scaled = eval_pfn(
+                pfn, train_x, train_y_scaled, x_q, warping=warping
+            )
         
         # unscale output
         mu_actual = mu_pred_scaled * std_y.squeeze() + mu_y.squeeze()

@@ -3,9 +3,20 @@ import botorch
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 
-def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x):
+def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x, warping=False):
     raw_model = pfn.model
     criterion = raw_model.criterion
+
+    fit_encoder = getattr(pfn, "fit_encoder", None)
+    if warping and fit_encoder is not None:
+        try:
+            encoder = fit_encoder(train_x, train_y, model=raw_model)
+        except TypeError:
+            encoder = fit_encoder(train_x, train_y)
+            
+        # Apply warping w(X; alpha, beta) to coordinates
+        train_x = encoder(train_x)
+        x = encoder(x)
 
     # Compute bin centres
     borders = criterion.borders.clone().detach()
