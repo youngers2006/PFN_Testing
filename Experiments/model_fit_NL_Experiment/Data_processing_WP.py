@@ -21,7 +21,7 @@ def compute_comparative_metrics(base_save_dir: str):
 
     # Sizing
     n_dims = 1
-    n_methods = 2
+    n_methods = 3
     n_repeats = 21
     n_samples = 1000
     n_fns = 1

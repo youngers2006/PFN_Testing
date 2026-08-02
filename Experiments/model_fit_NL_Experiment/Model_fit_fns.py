@@ -68,7 +68,7 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     
     return mu_arr, var_arr, y_true
     
-def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_samples=10000, device='cpu'):
+def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_samples=10000, warping=False, device='cpu'):
     """
     Evaluates 1000 points across a 2D space sequentially using eval_pfn.
     Plots the coordinates at (x_1, x_2, \mu) with point color mapped to \sigma^2.
@@ -86,13 +86,23 @@ def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_sample
     var_list = []
     
     pfn.model.eval()
+
+    fit_encoder = getattr(pfn, "fit_encoder", None)
+    if warping and fit_encoder is not None:
+        encoder = fit_encoder(pfn.model, train_x.to(torch.float32), train_y.to(torch.float32))
+            
+        # Apply warping w(X; alpha, beta) to coordinates
+        train_x = encoder(train_x)
+        x_queries = encoder(x_queries)
     
     # evaluate each point
     for i in tqdm(range(n_samples), desc="Evaluating PFN sequentially"):
         x_q = x_queries[i]
         
         with torch.no_grad():
-            mu_pred_scaled, var_pred_scaled = eval_pfn(pfn, train_x, train_y_scaled, x_q)
+            mu_pred_scaled, var_pred_scaled = eval_pfn(
+                pfn, train_x, train_y_scaled, x_q
+            )
         
         # unscale output
         mu_actual = mu_pred_scaled * std_y.squeeze() + mu_y.squeeze()
