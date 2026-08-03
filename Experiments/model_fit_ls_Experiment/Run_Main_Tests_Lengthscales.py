@@ -41,10 +41,10 @@ def main():
     n_init = 20
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.021, 0.3, 0.05, 0.08, 0.1385, 0.4, 0.5, 1.0, 1.5]
+    lengthscales = [0.021, 0.03, 0.05, 0.08, 0.1, 0.1385, 0.4, 0.5, 1.0, 1.5]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 9
+    n_tests = 10
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():

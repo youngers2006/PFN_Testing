@@ -67,13 +67,11 @@ def compute_comparative_metrics(base_save_dir: str):
                     
                     metrics["EI"][test, k, m_idx, rep, :, :] = torch.clamp(ei, min=0.0)
 
-                    metrics["GLL"][test, k, m_idx, rep, :, :] = abs(
-                        gaussian_log_likelyhood(
+                    metrics["GLL"][test, k, m_idx, rep, :, :] = gaussian_log_likelyhood(
                             y_true_store[k][test, m_idx, rep, :, :],
                             mu_store[k][test, m_idx, rep, :, :],
                             var_store[k][test, m_idx, rep, :, :]
                         )
-                    )
                     metrics["MGLL"][test, k, m_idx, rep, :] = (1 / n_samples) * torch.sum(
                         metrics["GLL"][test, k, m_idx, rep, :, :]
                     )
