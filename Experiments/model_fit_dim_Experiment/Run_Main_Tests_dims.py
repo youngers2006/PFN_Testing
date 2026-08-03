@@ -4,6 +4,7 @@ import torch
 from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
+from pfns4bo.scripts.tune_input_warping import fit_input_warping
 from tqdm import tqdm
 from RFF import RFFSampler
 from Model_fit_fns import plot_GP_variance_surface, plot_pfn_variance_surface
@@ -24,10 +25,10 @@ def main():
 
     # Experiments parameters
     n_repeats = 21
-    n_methods = 2
-    n_methods_UQ = 2
+    n_methods = 3
+    n_methods_UQ = 3
     features = 10000
-    x_dims = [1, 3, 5, 8, 10, 12, 15, 18, 20, 23, 25]
+    x_dims = [1, 5, 10, 15, 20, 25]
     n_fns = 1
 
     bounds_list = []
@@ -45,7 +46,7 @@ def main():
     kernel = "Matern32"
 
     # number of initialisation points
-    n_init = 100
+    n_init = 20
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscale_concentration = 1.2107
@@ -72,6 +73,7 @@ def main():
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
     pfn = TransformerBOMethod(torch.load(model_path, weights_only=False), device='cuda')
+    pfn_W = TransformerBOMethod(torch.load(model_path, weights_only=False), fit_encoder=fit_input_warping, device='cuda')
 
     for test in range(n_tests):
         for k in range(len(x_dims)):
@@ -118,7 +120,12 @@ def main():
     
                 # Test PFN model fit
                 mu_arr_PFN, var_arr_PFN, y_true_arr_PFN = plot_pfn_variance_surface(
-                    pfn, x_train, y_train, x_queries, y_true, n_samples=n_samples, device=device
+                    pfn, x_train, y_train, x_queries, y_true, n_samples=n_samples, warping=False, device=device
+                )
+
+                # Test PFN model fit
+                mu_arr_PFN_W, var_arr_PFN_W, y_true_arr_PFN_W = plot_pfn_variance_surface(
+                    pfn_W, x_train, y_train, x_queries, y_true, n_samples=n_samples, warping=True, device=device
                 )
 
                 # Store initialising data
