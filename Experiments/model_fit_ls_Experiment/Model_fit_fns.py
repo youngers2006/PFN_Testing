@@ -45,6 +45,15 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
         outcome_transform=Standardize(m=train_y.shape[-1]),
         covar_module=custom_covar
     )
+    noiseless_interval = gpytorch.constraints.Interval(1e-5, 1e-3)
+    model.likelihood.noise_covar.register_constraint("raw_noise", noiseless_interval)
+
+    # 7. Initialize starting noise well inside the valid interval
+    model.likelihood.noise_covar.noise = torch.tensor(
+        1e-4, 
+        dtype=train_y.dtype, 
+        device=train_y.device
+    )
 
     # Tune Hyperparams to maximise MLL
     mll = ExactMarginalLogLikelihood(model.likelihood, model)
