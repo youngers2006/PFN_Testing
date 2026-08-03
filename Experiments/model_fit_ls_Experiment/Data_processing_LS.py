@@ -71,7 +71,7 @@ def compute_comparative_metrics(base_save_dir: str):
                             y_true_store[k][test, m_idx, rep, :, :],
                             mu_store[k][test, m_idx, rep, :, :],
                             var_store[k][test, m_idx, rep, :, :]
-                        )
+                    )
                     metrics["MGLL"][test, k, m_idx, rep, :] = (1 / n_samples) * torch.sum(
                         metrics["GLL"][test, k, m_idx, rep, :, :]
                     )
@@ -83,5 +83,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "LS_1D_varied_results/run_20260803_015025" 
+    base_dir = "LS_1D_varied_results/run_20260803_125820" 
     compute_comparative_metrics(base_dir)
