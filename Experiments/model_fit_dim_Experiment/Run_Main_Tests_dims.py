@@ -28,7 +28,7 @@ def main():
     n_methods = 3
     n_methods_UQ = 3
     features = 10000
-    x_dims = [1, 5, 10, 15, 20, 25]
+    x_dims = [1, 2, 4, 6, 8, 10]
     n_fns = 1
 
     bounds_list = []
@@ -40,7 +40,7 @@ def main():
             ub.append(1.0)
         bounds_list.append(torch.tensor([lb, ub], dtype=torch.float64, device=device))
 
-    n_samples = 1000
+    n_samples = 5000
     seed = 42
     seed_init = 10
     kernel = "Matern32"
@@ -67,8 +67,8 @@ def main():
     y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
-    x_init_store =  [torch.zeros((n_tests, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
-    y_init_store =  [torch.zeros((n_tests, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
+    x_init_store =  [torch.zeros((n_tests, n_repeats, n_init * d, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    y_init_store =  [torch.zeros((n_tests, n_repeats, n_init * d, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
 
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
@@ -103,7 +103,7 @@ def main():
                 # Sample space
                 x_train = generate_sobol_points(
                     bounds,
-                    n_init,
+                    n_init * x_dim,
                     seed_init + i * (k * n_repeats),
                     device
                 )
@@ -142,6 +142,11 @@ def main():
                 y_true_store[k][test, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
                 mu_store[k][test, 1, i, :, :] = mu_arr_PFN.detach().cpu()
                 var_store[k][test, 1, i, :, :] = var_arr_PFN.detach().cpu()
+
+                x_query_store[k][test, 2, i, :, :] = x_queries.detach().cpu()
+                y_true_store[k][test, 2, i, :, :] = y_true_arr_PFN_W.detach().cpu()
+                mu_store[k][test, 2, i, :, :] = mu_arr_PFN_W.detach().cpu()
+                var_store[k][test, 2, i, :, :] = var_arr_PFN_W.detach().cpu()
     
     # Save all data
     data_dict = {
