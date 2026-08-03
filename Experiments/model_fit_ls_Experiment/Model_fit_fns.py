@@ -54,7 +54,7 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     model.likelihood.eval()
 
     # evaluate each point
-    for i in tqdm(range(n_samples), desc="Evaluating GP sequentially"):
+    for i in tqdm(range(n_samples), desc="Evaluating GP sequentially", leave=False):
         x_q = x_queries[i : i + 1]
         
         with torch.no_grad():
@@ -98,7 +98,7 @@ def plot_pfn_variance_surface(pfn, train_x, train_y, x_queries, y_true, n_sample
         x_queries = encoder(x_queries)
     
     # evaluate each point
-    for i in tqdm(range(n_samples), desc="Evaluating PFN sequentially"):
+    for i in tqdm(range(n_samples), desc="Evaluating PFN sequentially", leave=False):
         x_q = x_queries[i]
         
         with torch.no_grad():

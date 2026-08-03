@@ -72,7 +72,7 @@ def main():
             x_dim = x_dims[k]
             bounds = bounds_list[k]
             
-            for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}"):
+            for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}", leave=True):
                 # Draw from desired kernel
                 rff_sampler = RFFSampler(
                     num_features=features, 
