@@ -5,6 +5,7 @@ from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
 from NL_warping import NL_warping, get_distortion_ratio
+from Utils import gaussian_log_likelyhood
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
@@ -32,7 +33,9 @@ def compute_comparative_metrics(base_save_dir: str):
         "pred_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)), # GP & PFN only
         "total_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, 1)),
         "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1)),
-        "Distortion_ratio": torch.zeros((n_tests, 1))
+        "Distortion_ratio": torch.zeros((n_tests, 1)),
+        "GLL": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)),
+        "MGLL": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_fns))
     }
 
     # Loop through all tests
@@ -72,6 +75,15 @@ def compute_comparative_metrics(base_save_dir: str):
                     ei = improvement * cdf + sigma_safe * pdf
                     
                     metrics["EI"][test, k, m_idx, rep, :, :] = torch.clamp(ei, min=0.0)
+
+                    metrics["GLL"][test, k, m_idx, rep, :, :] = gaussian_log_likelyhood(
+                        y_true_store[k][test, m_idx, rep, :, :],
+                        mu_store[k][test, m_idx, rep, :, :],
+                        var_store[k][test, m_idx, rep, :, :]
+                    )
+                    metrics["MGLL"][test, k, m_idx, rep, :] = (1 / n_samples) * torch.sum(
+                        metrics["GLL"][test, k, m_idx, rep, :, :]
+                    )
 
     # Save metrics
     save_path = os.path.join(base_save_dir, "metrics.pt")
