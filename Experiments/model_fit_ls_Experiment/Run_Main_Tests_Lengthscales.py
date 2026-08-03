@@ -38,10 +38,10 @@ def main():
     kernel = "Matern32"
 
     # number of initialisation points
-    n_init = 10
+    n_init = 20
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.001, 0.01, 0.05, 0.1385, 0.4, 0.5, 0.8, 2.0, 4.0]
+    lengthscales = [0.021, 0.3, 0.05, 0.08, 0.1385, 0.4, 0.5, 1.0, 1.5]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
     n_tests = 9

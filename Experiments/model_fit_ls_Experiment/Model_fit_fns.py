@@ -5,12 +5,13 @@ from Utils import output_standardise
 from Aquisition_sampling import generate_sobol_points
 from tqdm import tqdm
 from botorch.models import SingleTaskGP
+import gpytorch
 from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.fit import fit_gpytorch_mll
 from botorch.models.transforms.outcome import Standardize
 from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
-from gpytorch.priors import GammaPrior
+from gpytorch.priors import GammaPrior, SmoothedBoxPrior
 
 def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=10000, device='cpu'):
     """
@@ -29,8 +30,9 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     matern_32 = MaternKernel(
         nu=1.5, 
         ard_num_dims=D,
-        lengthscale_prior=GammaPrior(3.0, 6.0)
+        lengthscale_prior=SmoothedBoxPrior(a=0.02 * (D ** 0.5), b=2.5 * (D ** 0.5), sigma=0.01)
     )
+    matern_32.raw_lengthscale_constraint = gpytorch.constraints.GreaterThan(1e-4)
     custom_covar = ScaleKernel(
         matern_32,
         outputscale_prior=GammaPrior(2.0, 0.15)
