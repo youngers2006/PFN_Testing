@@ -39,7 +39,7 @@ def main():
     kernel = "Matern32"
 
     # number of initialisation points
-    n_init = 10
+    n_init = 20
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscale_concentration = 1.2107
