@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import math
 
 def to_numpy(val):
     if torch.is_tensor(val):
@@ -22,3 +23,9 @@ def unscale_outputs(mu_y_out_s, var_y_out_s, mu_y, std_y):
     mu_y_out_us = (mu_y_out_s * std_y) + mu_y
     var_y_out_us = var_y_out_s * (std_y ** 2)
     return mu_y_out_us, var_y_out_us
+
+def gaussian_log_likelyhood(x, mu, var):
+    term_1 = -0.5 * math.log(2 * math.pi)
+    term_2 = -torch.log(torch.sqrt(var))
+    term_3 = -((x - mu) ** 2) / (2 * var)
+    return term_1 + term_2 + term_3
