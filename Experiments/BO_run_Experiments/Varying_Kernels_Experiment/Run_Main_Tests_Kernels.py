@@ -32,8 +32,8 @@ def main():
     # Experiments parameters
     n_tests = 4
     n_repeats = 21
-    n_methods = 3
-    n_methods_UQ = 2
+    n_methods = 4
+    n_methods_UQ = 3
     N_iters = 50
     features = 10000
     x_dims = [1, 2, 5]
