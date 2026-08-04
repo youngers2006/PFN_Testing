@@ -199,7 +199,7 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
             sobol_acq_pfn,
             return_actual_ei=True
         )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx])
+        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx], device=device)
         candidate_mean, candidate_var = unscale_outputs(
             candidate_mean_scaled.cpu(), candidate_var_scaled.cpu(), mu_y, std_y
         )
