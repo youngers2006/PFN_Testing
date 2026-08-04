@@ -41,7 +41,7 @@ def main():
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscale_concentration = 1.2107
-    lengthscale_rate = 1.5212 
+    lengthscale_rate = 1.5212
     variance_concentration = 0.8452
     variance_rate = 0.3993
     gamma_params = torch.tensor([lengthscale_concentration, lengthscale_rate, variance_concentration, variance_rate], device='cpu')
