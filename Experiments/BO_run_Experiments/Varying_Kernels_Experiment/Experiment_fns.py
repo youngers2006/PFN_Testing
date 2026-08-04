@@ -175,20 +175,23 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
         x_train_pfn = x_train.clone()
         sobol_acq_pfn = sobol_acq_points.clone()
 
-        x_train_pfn = x_train.to(device=device, dtype=torch.float32)
         y_train_scaled = y_train_scaled.to(device=device, dtype=torch.float32)
         sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
 
         fit_encoder = getattr(pfn, "fit_encoder", None)
         if fit_encoder is not None:
             encoder = fit_encoder(
-                pfn.model, x_train.to(dtype=torch.float32, device=device), y_train_scaled.to(dtype=torch.float32, device=device)
-            ).to(device)
+                pfn.model, x_train.to(dtype=torch.float32, device=device), y_train_scaled
+            )
                 
             # Apply warping w(X; alpha, beta) to coordinates
-            x_train_pfn = encoder(x_train_pfn)
-            sobol_acq_pfn = encoder(sobol_acq_pfn)
-            
+            x_train_pfn = encoder(x_train.cpu()).to(device=device, dtype=torch.float32)
+            sobol_acq_pfn = encoder(sobol_acq_points.cpu()).to(device=device, dtype=torch.float32)
+        else:
+            # No warping, just send raw coordinates straight to CUDA
+            x_train_pfn = x_train.to(device=device, dtype=torch.float32)
+            sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
+
         # Maximise Acquisition function
         candidate_idx, acq_value_scaled = pfn.observe_and_suggest(
             x_train_pfn,
