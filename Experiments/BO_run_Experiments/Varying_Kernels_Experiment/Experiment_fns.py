@@ -201,7 +201,7 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
         )
         candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx])
         candidate_mean, candidate_var = unscale_outputs(
-            candidate_mean_scaled, candidate_var_scaled, mu_y, std_y
+            candidate_mean_scaled.cpu(), candidate_var_scaled.cpu(), mu_y, std_y
         )
         acq_value = acq_value_scaled.cpu() * std_y.cpu()
         next_x = sobol_acq_points[candidate_idx].unsqueeze(0)
