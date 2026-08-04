@@ -1,14 +1,13 @@
 import torch
 import matplotlib.pyplot as plt
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.pfn_evaluate import eval_pfn
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Utils import output_standardise
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Aquisition_sampling import generate_sobol_points
+from pfn_evaluate import eval_pfn
+from Utils import output_standardise
+from Aquisition_sampling import generate_sobol_points
 from tqdm import tqdm
 from botorch.models import SingleTaskGP
 from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.fit import fit_gpytorch_mll
 from botorch.models.transforms.outcome import Standardize
-from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
 
