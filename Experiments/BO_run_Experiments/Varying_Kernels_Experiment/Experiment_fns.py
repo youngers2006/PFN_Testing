@@ -175,6 +175,10 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
         x_train_pfn = x_train.clone()
         sobol_acq_pfn = sobol_acq_points.clone()
 
+        x_train_pfn = x_train.to(device=device, dtype=torch.float32)
+        y_train_scaled = y_train_scaled.to(device=device, dtype=torch.float32)
+        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
+
         fit_encoder = getattr(pfn, "fit_encoder", None)
         if fit_encoder is not None:
             encoder = fit_encoder(
