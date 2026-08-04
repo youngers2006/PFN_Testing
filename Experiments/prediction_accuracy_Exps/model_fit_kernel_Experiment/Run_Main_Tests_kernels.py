@@ -1,13 +1,13 @@
 import os
 from datetime import datetime
 import torch
-from Experiments.prediction_accuracy.model_fit_kernel_Experiment.Aquisition_sampling import generate_sobol_points
+from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 from pfns4bo.scripts.tune_input_warping import fit_input_warping
 from tqdm import tqdm
-from Experiments.prediction_accuracy.model_fit_kernel_Experiment.RFF import RFFSampler
-from Experiments.prediction_accuracy.model_fit_kernel_Experiment.Model_fit_fns import plot_GP_variance_surface, plot_pfn_variance_surface
+from RFF import RFFSampler
+from Model_fit_fns import plot_GP_variance_surface, plot_pfn_variance_surface
 
 def main():
     # Save paths

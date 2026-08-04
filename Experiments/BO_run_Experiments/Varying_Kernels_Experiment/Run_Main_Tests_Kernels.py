@@ -7,17 +7,18 @@ from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
 from botorch.optim import optimize_acqf_discrete
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random
+from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random, Experiment_PFN_Warped
 from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 from tqdm import tqdm
 from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.RFF import RFFSampler
+from pfns4bo.scripts.tune_input_warping import fit_input_warping
 
 def main():
     # Save paths
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_save_dir = f"results_KT_150/run_{timestamp}"
+    base_save_dir = f"results_KT_50/run_{timestamp}"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -29,18 +30,18 @@ def main():
         print('cpu')
 
     # Experiments parameters
-    n_tests = 3
+    n_tests = 4
     n_repeats = 21
     n_methods = 3
     n_methods_UQ = 2
-    N_iters = 150
+    N_iters = 50
     features = 10000
-    x_dims = [2, 5, 10]
+    x_dims = [1, 2, 5]
     n_fns = 1
     bounds_list = []
+    bounds_list.append(torch.tensor([[0.0], [1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
-    bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     n_samples = 100000
     seed = 42
     seed_init = 10
@@ -71,13 +72,16 @@ def main():
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
     pfn = TransformerBOMethod(torch.load(model_path, weights_only=False), device='cuda')
+    pfn_W = TransformerBOMethod(torch.load(model_path, weights_only=False), fit_encoder=fit_input_warping, device='cuda')
 
     for test in range(n_tests):
         if test == 0:
             kernel="Matern12"
         elif test == 1:
-            kernel="Matern52"
+            kernel="Matern32"
         elif test == 2:
+            kernel="Matern52"
+        elif test == 3:
             kernel="RBF"
         
         for k in range(3):
@@ -134,6 +138,11 @@ def main():
                 x_query_arr_PFN, x_init_PFN, y_true_arr_PFN, y_init_PFN, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN = Experiment_PFN(
                     pfn, rff_sampler, x_train, N_iters, sobol_acq_points
                 )
+
+                # Run warped PFN experiment
+                x_query_arr_PFN_W, x_init_PFN_W, y_true_arr_PFN_W, y_init_PFN_W, y_best_arr_PFN_W, mu_arr_PFN_W, var_arr_PFN_W, alpha_arr_PFN_W = Experiment_PFN_Warped(
+                    pfn_W, rff_sampler, x_train, N_iters, sobol_acq_points
+                )
     
                 # Store Data (in_dim, method, test_iter, opt_iter, data)
                 x_query_store[k][test, 0, i, :, :] = x_query_arr_GP.detach().cpu()
@@ -153,12 +162,21 @@ def main():
                 mu_store[k][test, 1, i, :, :] = mu_arr_PFN.detach().cpu()
                 var_store[k][test, 1, i, :, :] = var_arr_PFN.detach().cpu()
                 alpha_store[k][test, 1, i, :, :] = alpha_arr_PFN.detach().cpu()
+
+                x_query_store[k][test, 2, i, :, :] = x_query_arr_PFN_W.detach().cpu()
+                x_init_store[k][test, 2, i, :, :] = x_init_PFN_W.detach().cpu()
+                y_init_store[k][test, 2, i, :, :] = y_init_PFN_W.detach().cpu()
+                y_true_store[k][test, 2, i, :, :] = y_true_arr_PFN_W.detach().cpu()
+                y_best_store[k][test, 2, i, :, :] = y_best_arr_PFN_W.detach().cpu()
+                mu_store[k][test, 2, i, :, :] = mu_arr_PFN_W.detach().cpu()
+                var_store[k][test, 2, i, :, :] = var_arr_PFN_W.detach().cpu()
+                alpha_store[k][test, 2, i, :, :] = alpha_arr_PFN_W.detach().cpu()
     
-                x_query_store[k][test, 2, i, :, :] = x_query_arr_rs.detach().cpu()
-                x_init_store[k][test, 2, i, :, :] = x_init_rs.detach().cpu()
-                y_init_store[k][test, 2, i, :, :] = y_init_rs.detach().cpu()
-                y_true_store[k][test, 2, i, :, :] = y_true_arr_rs.detach().cpu()
-                y_best_store[k][test, 2, i, :, :] = y_best_arr_rs.detach().cpu()
+                x_query_store[k][test, 3, i, :, :] = x_query_arr_rs.detach().cpu()
+                x_init_store[k][test, 3, i, :, :] = x_init_rs.detach().cpu()
+                y_init_store[k][test, 3, i, :, :] = y_init_rs.detach().cpu()
+                y_true_store[k][test, 3, i, :, :] = y_true_arr_rs.detach().cpu()
+                y_best_store[k][test, 3, i, :, :] = y_best_arr_rs.detach().cpu()
     
     # Save all data
     data_dict = {

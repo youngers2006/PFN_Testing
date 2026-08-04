@@ -4,8 +4,8 @@ import numpy as np
 from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
-from Experiments.prediction_accuracy.model_fit_NL_Experiment.NL_warping import NL_warping, get_distortion_ratio
-from Experiments.prediction_accuracy.model_fit_NL_Experiment.Utils import gaussian_log_likelyhood
+from NL_warping import NL_warping, get_distortion_ratio
+from Utils import gaussian_log_likelyhood
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
