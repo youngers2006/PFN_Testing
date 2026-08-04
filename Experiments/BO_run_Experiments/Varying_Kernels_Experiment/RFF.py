@@ -4,7 +4,7 @@ from scipy.stats import multivariate_t, gamma
 import os
 
 from typing import Optional, Dict, Any
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Utils import to_numpy
+from Utils import to_numpy
 
 class RFFSampler:
     """
