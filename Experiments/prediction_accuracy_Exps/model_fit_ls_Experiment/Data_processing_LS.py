@@ -23,7 +23,7 @@ def compute_comparative_metrics(base_save_dir: str):
     n_repeats = 21
     n_samples = 1000
     n_fns = 1
-    n_tests = 9
+    n_tests = 14
     
     # Initialize metric storage
     metrics = {
