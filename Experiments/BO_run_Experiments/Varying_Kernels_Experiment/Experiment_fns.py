@@ -3,7 +3,7 @@ import gpytorch
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_mll
 from gpytorch.mlls import ExactMarginalLogLikelihood
-from botorch.acquisition import qLogExpectedImprovement
+from botorch.acquisition.logei import qLogExpectedImprovement
 from botorch.models.transforms.outcome import Standardize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior, SmoothedBoxPrior
