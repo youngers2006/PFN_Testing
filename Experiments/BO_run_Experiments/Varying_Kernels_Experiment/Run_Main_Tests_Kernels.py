@@ -1,18 +1,12 @@
 import os
 from datetime import datetime
 import torch
-import gpytorch
-import botorch
-from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
-from botorch.acquisition import qLogExpectedImprovement
-from botorch.optim import optimize_acqf_discrete
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random, Experiment_PFN_Warped
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Aquisition_sampling import generate_sobol_points
+from Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random, Experiment_PFN_Warped
+from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 from tqdm import tqdm
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.RFF import RFFSampler
+from RFF import RFFSampler
 from pfns4bo.scripts.tune_input_warping import fit_input_warping
 
 def main():

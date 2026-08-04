@@ -1,6 +1,5 @@
 import torch
 import gpytorch
-import botorch
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
@@ -9,11 +8,11 @@ from botorch.models.transforms.outcome import Standardize
 from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior, SmoothedBoxPrior
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Aquisition_sampling import optimise_EI_GP
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.pfn_evaluate import eval_pfn
+from Aquisition_sampling import optimise_EI_GP
+from pfn_evaluate import eval_pfn
 from tqdm import tqdm
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.RFF import RFFSampler
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.Utils import output_standardise, unscale_outputs
+from RFF import RFFSampler
+from Utils import output_standardise, unscale_outputs
 
 # Supress warnings
 import warnings
