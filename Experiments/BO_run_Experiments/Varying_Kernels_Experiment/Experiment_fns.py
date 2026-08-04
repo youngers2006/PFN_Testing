@@ -148,6 +148,9 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
 
 def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
 
+    # get PFN device
+    device = next(pfn.model.parameters()).device
+
     # Compute values of sample initial points
     y_train = rff_sampler.sample(x_train)
 
@@ -174,7 +177,9 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
 
         fit_encoder = getattr(pfn, "fit_encoder", None)
         if fit_encoder is not None:
-            encoder = fit_encoder(pfn.model, x_train.to(torch.float32), y_train_scaled.to(torch.float32))
+            encoder = fit_encoder(
+                pfn.model, x_train.to(dtype=torch.float32, device=device), y_train_scaled.to(dtype=torch.float32, device=device)
+            )
                 
             # Apply warping w(X; alpha, beta) to coordinates
             x_train_pfn = encoder(x_train_pfn)

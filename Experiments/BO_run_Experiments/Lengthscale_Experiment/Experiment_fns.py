@@ -2,18 +2,17 @@ import torch
 import gpytorch
 import botorch
 from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
+from botorch.fit import fit_gpytorch_mll
+from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
-from botorch.optim import optimize_acqf_discrete
 from botorch.models.transforms.outcome import Standardize
-from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
-from gpytorch.priors import GammaPrior
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Aquisition_sampling import optimise_EI_GP
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.pfn_evaluate import eval_pfn
+from gpytorch.priors import GammaPrior, SmoothedBoxPrior
+from Aquisition_sampling import optimise_EI_GP
+from pfn_evaluate import eval_pfn
 from tqdm import tqdm
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.RFF import RFFSampler
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Utils import output_standardise, unscale_outputs
+from RFF import RFFSampler
+from Utils import output_standardise, unscale_outputs
 
 # Supress warnings
 import warnings
@@ -43,8 +42,9 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
         matern_32 = MaternKernel(
             nu=1.5, 
             ard_num_dims=D,
-            lengthscale_prior=GammaPrior(3.0, 6.0)
+            lengthscale_prior=SmoothedBoxPrior(a=0.02 * (D ** 0.5), b=2.5 * (D ** 0.5), sigma=0.01)
         )
+        matern_32.raw_lengthscale_constraint = gpytorch.constraints.GreaterThan(1e-4)
         custom_covar = ScaleKernel(
             matern_32,
             outputscale_prior=GammaPrior(2.0, 0.15)
@@ -56,6 +56,15 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
             y_train,
             outcome_transform=Standardize(m=y_train.shape[-1]),
             covar_module=custom_covar
+        )
+        noiseless_interval = gpytorch.constraints.Interval(1e-5, 1e-3)
+        model.likelihood.noise_covar.register_constraint("raw_noise", noiseless_interval)
+    
+        # Change noise floor
+        model.likelihood.noise_covar.noise = torch.tensor(
+            1e-4, 
+            dtype=y_train.dtype, 
+            device=y_train.device
         )
 
         # Tune Hyperparams to maximise MLL

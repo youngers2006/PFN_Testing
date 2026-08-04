@@ -1,5 +1,4 @@
 import torch
-import botorch
 from botorch.optim import optimize_acqf_discrete
 from botorch.sampling import SobolEngine
 
