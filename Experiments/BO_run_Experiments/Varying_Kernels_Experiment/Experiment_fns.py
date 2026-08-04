@@ -119,15 +119,25 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
     for i in tqdm(range(N_iters), desc="PFN", leave=False):
         # Standardise inputs
         y_train_scaled, mu_y, std_y = output_standardise(y_train)
+
+        # Create placeholder inputs
+        x_train_pfn = x_train.clone()
+        sobol_acq_pfn = sobol_acq_points.clone()
+        y_train_scaled = y_train_scaled.to(device=device, dtype=torch.float32)
+        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
+
+        # No warping, just send raw coordinates straight to CUDA
+        x_train_pfn = x_train.to(device=device, dtype=torch.float32)
+        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
             
         # Maximise Acquisition function
         candidate_idx, acq_value_scaled = pfn.observe_and_suggest(
-            x_train,
+            x_train_pfn,
             y_train_scaled,
-            sobol_acq_points,
+            sobol_acq_pfn,
             return_actual_ei=True
         )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train, y_train_scaled, sobol_acq_points[candidate_idx], device=device)
+        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_points[candidate_idx])
         candidate_mean, candidate_var = unscale_outputs(
             candidate_mean_scaled, candidate_var_scaled, mu_y, std_y
         )
@@ -202,7 +212,7 @@ def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_
             sobol_acq_pfn,
             return_actual_ei=True
         )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx], device=device)
+        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx])
         candidate_mean, candidate_var = unscale_outputs(
             candidate_mean_scaled.cpu(), candidate_var_scaled.cpu(), mu_y, std_y
         )

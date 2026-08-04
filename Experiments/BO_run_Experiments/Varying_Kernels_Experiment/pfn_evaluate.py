@@ -3,9 +3,11 @@ import botorch
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 
-def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x, device):
+def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x):
     raw_model = pfn.model
     criterion = raw_model.criterion
+
+    device = next(raw_model.parameters()).device
 
     train_x = train_x.to(device=device, dtype=torch.float32)
     train_y = train_y.to(device=device, dtype=torch.float32)
@@ -51,4 +53,4 @@ def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x, device):
         var_pred = var_pred.unsqueeze(0)
         
     # Cast back to double to match storage containers
-    return mu_pred.to(torch.float64), var_pred.to(torch.float64)
+    return mu_pred.to(device='cpu', dtype=torch.float64), var_pred.to(device='cpu', dtype=torch.float64)
