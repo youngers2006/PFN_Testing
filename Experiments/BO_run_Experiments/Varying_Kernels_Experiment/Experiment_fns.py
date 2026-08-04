@@ -1,11 +1,10 @@
 import torch
 import gpytorch
 from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
+from botorch.fit import fit_gpytorch_mll
+from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
-from botorch.optim import optimize_acqf_discrete
 from botorch.models.transforms.outcome import Standardize
-from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior, SmoothedBoxPrior
 from Aquisition_sampling import optimise_EI_GP
