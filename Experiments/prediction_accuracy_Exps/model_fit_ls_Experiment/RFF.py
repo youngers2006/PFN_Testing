@@ -4,7 +4,7 @@ from scipy.stats import multivariate_t, gamma
 import os
 
 from typing import Optional, Dict, Any
-from Experiments.prediction_accuracy.model_fit_ls_Experiment.Utils import to_numpy
+from Utils import to_numpy
 
 class RFFSampler:
     """

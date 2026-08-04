@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
-from Experiments.prediction_accuracy.model_fit_ls_Experiment.Utils import gaussian_log_likelyhood
+from Utils import gaussian_log_likelyhood
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
@@ -83,5 +83,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "LS_1D_varied_results/run_20260803_125820" 
+    base_dir = "LS_1D_varied_results/run_20260804_121823" 
     compute_comparative_metrics(base_dir)
