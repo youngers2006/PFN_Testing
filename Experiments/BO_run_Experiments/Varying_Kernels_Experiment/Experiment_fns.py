@@ -97,6 +97,9 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
 
 def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
 
+    # get PFN device
+    device = next(pfn.model.parameters()).device
+
     # Compute values of sample initial points
     y_train = rff_sampler.sample(x_train)
 
@@ -124,7 +127,7 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
             sobol_acq_points,
             return_actual_ei=True
         )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train, y_train_scaled, sobol_acq_points[candidate_idx])
+        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train, y_train_scaled, sobol_acq_points[candidate_idx], device=device)
         candidate_mean, candidate_var = unscale_outputs(
             candidate_mean_scaled, candidate_var_scaled, mu_y, std_y
         )
