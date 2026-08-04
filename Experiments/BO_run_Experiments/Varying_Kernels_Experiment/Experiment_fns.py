@@ -3,7 +3,7 @@ import gpytorch
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_mll
 from gpytorch.mlls import ExactMarginalLogLikelihood
-from botorch.acquisition.logei import qLogExpectedImprovement
+from botorch.acquisition import qExpectedImprovement
 from botorch.models.transforms.outcome import Standardize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior, SmoothedBoxPrior
@@ -72,7 +72,7 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
 
         # Maximise Acquisition function
         f_best = y_train.max()
-        qEI = qLogExpectedImprovement(model, f_best)
+        qEI = qExpectedImprovement(model, f_best)
         candidate, acq_value, candidate_mean, candidate_var = optimise_EI_GP(
             acq_fn=qEI, 
             x_query=sobol_acq_points, 
