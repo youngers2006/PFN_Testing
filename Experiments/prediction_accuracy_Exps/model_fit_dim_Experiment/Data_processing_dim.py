@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import spearmanr, rankdata
 from tqdm import tqdm
 import math
+from Utils import gaussian_log_likelyhood
 
 def compute_comparative_metrics(base_save_dir: str):
     # Load experimental results
@@ -17,10 +18,10 @@ def compute_comparative_metrics(base_save_dir: str):
     y_init = data["y_init"]
 
     # Sizing
-    n_dims = 11
-    n_methods = 2
+    n_dims = 6
+    n_methods = 3
     n_repeats = 21
-    n_samples = 1000
+    n_samples = 5000
     n_fns = 1
     n_tests = 1
     
@@ -28,7 +29,9 @@ def compute_comparative_metrics(base_save_dir: str):
     metrics = {
         "pred_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)), # GP & PFN only
         "total_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, 1)),
-        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1))
+        "EI": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, 1)),
+        "GLL": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_samples, n_fns)),
+        "MGLL": torch.zeros((n_tests, n_dims, n_methods, n_repeats, n_fns))
     }
 
     # Loop through all tests
@@ -64,6 +67,15 @@ def compute_comparative_metrics(base_save_dir: str):
                     
                     metrics["EI"][test, k, m_idx, rep, :, :] = torch.clamp(ei, min=0.0)
 
+                    metrics["GLL"][test, k, m_idx, rep, :, :] = gaussian_log_likelyhood(
+                        y_true_store[k][test, m_idx, rep, :, :],
+                        mu_store[k][test, m_idx, rep, :, :],
+                        var_store[k][test, m_idx, rep, :, :]
+                    )
+                    metrics["MGLL"][test, k, m_idx, rep, :] = (1 / n_samples) * torch.sum(
+                        metrics["GLL"][test, k, m_idx, rep, :, :]
+                    )
+
     # Save metrics
     save_path = os.path.join(base_save_dir, "metrics.pt")
     torch.save(metrics, save_path)
@@ -71,5 +83,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "dim_varied_results/run_20260731_120345" 
+    base_dir = "dim_varied_results/run_20260804_112003" 
     compute_comparative_metrics(base_dir)
