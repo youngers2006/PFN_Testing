@@ -14,8 +14,8 @@ class RFFSampler:
         num_features (Optional[int]): number of features to use for the RFF approximation
         input_dim (Optional[int]): number of input dimensions
         number_of_functions (Optional[int]): number of objective functions
-        ls_alpha (Optional[float]): Shape parameter of the lengthscale gamma distribution
-        ls_beta (Optional[float]): Rate parameter of the lengthscale gamma distribution
+        ls_alpha (Optional[float]): Shape parameter of the lengthscales gamma distribution
+        ls_beta (Optional[float]): Rate parameter of the lengthscales gamma distribution
         var_alpha (Optional[float]): Shape parameter of the variance gamma distribution
         var_beta (Optional[float]): Rate parameter of the variance gamma distribution
         kernel (Optional[str]): kernel type, either "RBF" or "Matern52"
@@ -90,7 +90,7 @@ class RFFSampler:
             weights: torch.Tensor, 
             phi: torch.Tensor, 
             num_features: int, 
-            lengthscale: float, 
+            lengthscales: float, 
             variance: float,
             input_dim: int, 
             output_dim: int, 
@@ -104,7 +104,7 @@ class RFFSampler:
             weights (torch.Tensor): weights
             phi (torch.Tensor): phi values
             num_features (int): number of features
-            lengthscale (float): lengthscale
+            lengthscales (float): lengthscales
             input_dim (int): input dimension
             output_dim (int): output dimension
             kernel (str): kernel type, either "RBF" or "Matern52"
@@ -115,7 +115,7 @@ class RFFSampler:
         self.weights = weights
         self.phi = phi
         self.num_features = num_features
-        self.lengthscale = lengthscale
+        self.lengthscales = lengthscales
         self.variance = variance
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -138,13 +138,13 @@ class RFFSampler:
         self.weights = torch.as_tensor(npzfile['weights'])
         self.phi = torch.as_tensor(npzfile['phi'])
         self.num_features = int(npzfile['num_features'])
-        self.lengthscale = float(npzfile['lengthscale'])
+        self.lengthscales = float(npzfile['lengthscales'])
         self.variance = float(npzfile['variance'])
         self.input_dim = int(npzfile['input_dim'])
         self.output_dim = int(npzfile['output_dim'])
 
         assert any(
-            [self.omegas is not None, self.weights is not None, self.phi is not None, self.num_features is not None, self.lengthscale is not None, self.variance is not None, self.input_dim is not None,
+            [self.omegas is not None, self.weights is not None, self.phi is not None, self.num_features is not None, self.lengthscales is not None, self.variance is not None, self.input_dim is not None,
              self.output_dim is not None])
 
         self.rff_scaling = torch.sqrt(torch.tensor(2.0 * self.variance / self.num_features, dtype=torch.float64))
@@ -163,10 +163,10 @@ class RFFSampler:
             None
         """
         assert any(
-            [self.omegas is not None, self.weights is not None, self.phi is not None, self.num_features is not None, self.lengthscale is not None, self.variance is not None, self.input_dim is not None,
+            [self.omegas is not None, self.weights is not None, self.phi is not None, self.num_features is not None, self.lengthscales is not None, self.variance is not None, self.input_dim is not None,
              self.output_dim is not None])
 
         os.makedirs(filepath, exist_ok=True)
         np.savez(f'{filepath}/problem.npz', omegas=to_numpy(self.omegas), weights=to_numpy(self.weights), phi=to_numpy(self.phi),
-                 num_features=to_numpy(self.num_features), lengthscale=to_numpy(self.lengthscale), variance=to_numpy(self.variance), input_dim=to_numpy(self.input_dim), 
+                 num_features=to_numpy(self.num_features), lengthscales=to_numpy(self.lengthscales), variance=to_numpy(self.variance), input_dim=to_numpy(self.input_dim), 
                  output_dim=to_numpy(self.output_dim), lb=to_numpy(lb), ub=to_numpy(ub))

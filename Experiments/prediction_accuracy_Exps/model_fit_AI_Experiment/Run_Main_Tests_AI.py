@@ -12,7 +12,7 @@ from Model_fit_fns import plot_GP_variance_surface, plot_pfn_variance_surface
 def main():
     # Save paths
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_save_dir = f"LS_1D_varied_results/run_{timestamp}"
+    base_save_dir = f"AI_varied_results/run_{timestamp}"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
