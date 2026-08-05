@@ -100,7 +100,7 @@ def main():
                 x_train = generate_sobol_points(
                     bounds,
                     n_init,
-                    seed_init + i * (k * n_repeats),
+                    seed_init + i + (k * n_repeats),
                     device
                 )
                 y_train = rff_sampler.sample(x_train)
