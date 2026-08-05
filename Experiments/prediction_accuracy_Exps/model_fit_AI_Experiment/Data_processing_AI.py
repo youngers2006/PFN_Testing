@@ -23,7 +23,7 @@ def compute_comparative_metrics(base_save_dir: str):
     n_repeats = 21
     n_samples = 1000
     n_fns = 1
-    n_tests = 14
+    n_tests = 28
     
     # Initialize metric storage
     metrics = {
@@ -83,5 +83,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "LS_1D_varied_results/run_20260804_121823" 
+    base_dir = "AI_varied_results/run_20260805_022647" 
     compute_comparative_metrics(base_dir)
