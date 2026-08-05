@@ -50,8 +50,8 @@ def main():
     n_tests = 11
 
     # Warping Parameters
-    alpha_NL = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 1.0, 1.0, 1.0, 1.0, 0.5]
-    beta_NL = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 3.0, 10.0, 12.0, 15.0, 0.5]
+    alpha_NL = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    beta_NL =  [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
     alpha_params = torch.tensor(alpha_NL)
     beta_params = torch.tensor(beta_NL)
 
@@ -106,7 +106,7 @@ def main():
                 x_train = generate_sobol_points(
                     bounds,
                     n_init,
-                    seed_init + i * (k * n_repeats),
+                    seed_init + i + (k * n_repeats),
                     device
                 )
                 y_train = rff_sampler.sample(NL_warping(x_train, alpha, beta))
