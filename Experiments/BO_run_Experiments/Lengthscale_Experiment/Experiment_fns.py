@@ -11,6 +11,7 @@ from Aquisition_sampling import optimise_EI_GP
 from pfn_evaluate import eval_pfn
 from tqdm import tqdm
 from RFF import RFFSampler
+from gpytorch.likelihoods import GaussianLikelihood
 from Utils import output_standardise, unscale_outputs
 
 # Supress warnings
@@ -48,17 +49,21 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
             matern_32,
             outputscale_prior=GammaPrior(2.0, 0.15)
         )
+        noiseless_interval = gpytorch.constraints.Interval(1e-5, 1e-3)
+        custom_likelihood = GaussianLikelihood(
+            noise_constraint=noiseless_interval,
+            noise_prior=None  # Overrides BoTorch's default GammaPrior(1.1, 0.05)
+        )
         
         # Setup surrogate model
         model = SingleTaskGP(
             x_train, 
             y_train,
             outcome_transform=Standardize(m=y_train.shape[-1]),
-            covar_module=custom_covar
+            covar_module=custom_covar,
+            likelihood=custom_likelihood
         )
-        noiseless_interval = gpytorch.constraints.Interval(1e-5, 1e-3)
-        model.likelihood.noise_covar.register_constraint("raw_noise", noiseless_interval)
-    
+
         # Change noise floor
         model.likelihood.noise_covar.noise = torch.tensor(
             1e-4, 
