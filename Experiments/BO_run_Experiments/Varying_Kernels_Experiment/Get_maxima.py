@@ -6,7 +6,7 @@ from scipy.stats import qmc
 from typing import Tuple
 from tqdm import tqdm
 
-from Experiments.BO_run_Experiments.Varying_Kernels_Experiment.RFF import RFFSampler
+from RFF import RFFSampler
 
 # Ensure your RFFSampler is accessible in this namespace
 # from rff_sampler import RFFSampler 

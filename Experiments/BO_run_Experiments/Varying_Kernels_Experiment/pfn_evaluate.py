@@ -7,14 +7,8 @@ def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x):
     raw_model = pfn.model
     criterion = raw_model.criterion
 
-    device = next(raw_model.parameters()).device
-
-    train_x = train_x.to(device=device, dtype=torch.float32)
-    train_y = train_y.to(device=device, dtype=torch.float32)
-    x = x.to(device=device, dtype=torch.float32)
-
     # Compute bin centres
-    borders = criterion.borders.clone().detach().to(device=device, dtype=torch.float32)
+    borders = criterion.borders.clone().detach()
     y_grid = (borders[:-1] + borders[1:]) / 2.0
     
     # Make input 2d
@@ -25,7 +19,7 @@ def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x):
     X_seq = torch.cat([train_x, x], dim=0).unsqueeze(1) 
     
     # pad output sequence to match input
-    dummy_y = torch.zeros((x.shape[0], train_y.shape[1]), dtype=train_y.dtype, device=device)
+    dummy_y = torch.zeros((x.shape[0], train_y.shape[1]), dtype=train_y.dtype, device=train_y.device)
     Y_seq = torch.cat([train_y, dummy_y], dim=0).unsqueeze(1)
     
     with torch.no_grad():
@@ -53,4 +47,4 @@ def eval_pfn(pfn: TransformerBOMethod, train_x, train_y, x):
         var_pred = var_pred.unsqueeze(0)
         
     # Cast back to double to match storage containers
-    return mu_pred.to(device='cpu', dtype=torch.float64), var_pred.to(device='cpu', dtype=torch.float64)
+    return mu_pred.to(torch.float64), var_pred.to(torch.float64)

@@ -19,10 +19,6 @@ def output_standardise(x):
     return x, mu_x, std_x
 
 def unscale_outputs(mu_y_out_s, var_y_out_s, mu_y, std_y):
-    target_device = mu_y_out_s.device
-    mu_y = mu_y.to(device=target_device)
-    std_y = std_y.to(device=target_device)
-    
     mu_y_out_us = (mu_y_out_s * std_y) + mu_y
     var_y_out_us = var_y_out_s * (std_y ** 2)
     return mu_y_out_us, var_y_out_us

@@ -119,102 +119,17 @@ def Experiment_PFN(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_poi
     for i in tqdm(range(N_iters), desc="PFN", leave=False):
         # Standardise inputs
         y_train_scaled, mu_y, std_y = output_standardise(y_train)
-
-        # Create placeholder inputs
-        x_train_pfn = x_train.clone()
-        sobol_acq_pfn = sobol_acq_points.clone()
-        y_train_scaled = y_train_scaled.to(device=device, dtype=torch.float32)
-        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
-
-        # No warping, just send raw coordinates straight to CUDA
-        x_train_pfn = x_train.to(device=device, dtype=torch.float32)
-        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
             
         # Maximise Acquisition function
         candidate_idx, acq_value_scaled = pfn.observe_and_suggest(
-            x_train_pfn,
+            x_train,
             y_train_scaled,
-            sobol_acq_pfn,
+            sobol_acq_points,
             return_actual_ei=True
         )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_points[candidate_idx])
+        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train, y_train_scaled, sobol_acq_points[candidate_idx])
         candidate_mean, candidate_var = unscale_outputs(
-            candidate_mean_scaled.cpu(), candidate_var_scaled.cpu(), mu_y, std_y
-        )
-        acq_value = acq_value_scaled.cpu() * std_y.cpu()
-        next_x = sobol_acq_points[candidate_idx].unsqueeze(0)
-
-        # Evaluate and add the new point to the training set
-        next_y = rff_sampler.sample(next_x)
-        x_train = torch.cat([x_train, next_x])
-        y_train = torch.cat([y_train, next_y])
-
-        # Record data
-        x_query_arr[i, :] = next_x.detach().cpu()
-        y_true_arr[i, :] = next_y.detach().cpu()
-        y_best_arr[i, :] = torch.max(y_train, dim=0).values.detach().cpu()
-        mu_arr[i, :] = candidate_mean.detach().cpu()
-        var_arr[i, :] = candidate_var.detach().cpu()
-        alpha_arr[i, :] = acq_value.detach().cpu().flatten()[0]
-
-    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr
-
-def Experiment_PFN_Warped(pfn, rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
-
-    # get PFN device
-    device = next(pfn.model.parameters()).device
-
-    # Compute values of sample initial points
-    y_train = rff_sampler.sample(x_train)
-
-    # Record initial data
-    x_init = x_train.clone().detach()
-    y_init = y_train.clone().detach()
-
-    # Initial storage
-    x_query_arr = torch.zeros(N_iters, x_train.shape[1], dtype=torch.float64, device='cpu')
-    y_true_arr = torch.zeros(N_iters, y_train.shape[1], dtype=torch.float64, device='cpu')
-    y_best_arr = torch.zeros(N_iters, y_train.shape[1], dtype=torch.float64, device='cpu')
-    mu_arr = torch.zeros(N_iters, y_train.shape[1], dtype=torch.float64, device='cpu')
-    var_arr = torch.zeros(N_iters, y_train.shape[1], dtype=torch.float64, device='cpu')
-    alpha_arr = torch.zeros(N_iters, 1, dtype=torch.float64, device='cpu')
-
-    # BO test
-    for i in tqdm(range(N_iters), desc="PFN", leave=False):
-        # Standardise inputs
-        y_train_scaled, mu_y, std_y = output_standardise(y_train)
-
-        # Create placeholder inputs
-        x_train_pfn = x_train.clone()
-        sobol_acq_pfn = sobol_acq_points.clone()
-
-        y_train_scaled = y_train_scaled.to(device=device, dtype=torch.float32)
-        sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
-
-        fit_encoder = getattr(pfn, "fit_encoder", None)
-        if fit_encoder is not None:
-            encoder = fit_encoder(
-                pfn.model, x_train.to(dtype=torch.float32, device=device), y_train_scaled
-            )
-                
-            # Apply warping w(X; alpha, beta) to coordinates
-            x_train_pfn = encoder(x_train.cpu()).to(device=device, dtype=torch.float32)
-            sobol_acq_pfn = encoder(sobol_acq_points.cpu()).to(device=device, dtype=torch.float32)
-        else:
-            # No warping, just send raw coordinates straight to CUDA
-            x_train_pfn = x_train.to(device=device, dtype=torch.float32)
-            sobol_acq_pfn = sobol_acq_points.to(device=device, dtype=torch.float32)
-
-        # Maximise Acquisition function
-        candidate_idx, acq_value_scaled = pfn.observe_and_suggest(
-            x_train_pfn,
-            y_train_scaled,
-            sobol_acq_pfn,
-            return_actual_ei=True
-        )
-        candidate_mean_scaled, candidate_var_scaled = eval_pfn(pfn, x_train_pfn, y_train_scaled, sobol_acq_pfn[candidate_idx])
-        candidate_mean, candidate_var = unscale_outputs(
-            candidate_mean_scaled.cpu(), candidate_var_scaled.cpu(), mu_y, std_y
+            candidate_mean_scaled, candidate_var_scaled, mu_y, std_y
         )
         acq_value = acq_value_scaled.cpu() * std_y.cpu()
         next_x = sobol_acq_points[candidate_idx].unsqueeze(0)
