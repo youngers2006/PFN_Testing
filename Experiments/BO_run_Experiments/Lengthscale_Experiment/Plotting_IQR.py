@@ -1,8 +1,8 @@
 import torch
 import matplotlib.pyplot as plt
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.pfn_evaluate import eval_pfn
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Utils import output_standardise
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Aquisition_sampling import generate_sobol_points
+from pfn_evaluate import eval_pfn
+from Utils import output_standardise
+from Aquisition_sampling import generate_sobol_points
 from tqdm import tqdm
 from botorch.models import SingleTaskGP
 from gpytorch.mlls import ExactMarginalLogLikelihood
