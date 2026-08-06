@@ -1,23 +1,15 @@
 import os
-from datetime import datetime
 import torch
-import gpytorch
-import botorch
-from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
-from botorch.acquisition import qLogExpectedImprovement
-from botorch.optim import optimize_acqf_discrete
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.Aquisition_sampling import generate_sobol_points
+from Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random
+from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 from tqdm import tqdm
-from Experiments.BO_run_Experiments.Lengthscale_Experiment.RFF import RFFSampler
+from RFF import RFFSampler
 
 def main():
     # Save paths
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_save_dir = f"results_LS_150/run_{timestamp}"
+    base_save_dir = f"results_LS_BO_PFN_GP/run_N_50"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -32,24 +24,25 @@ def main():
     n_repeats = 21
     n_methods = 3
     n_methods_UQ = 2
-    N_iters = 150
+    n_dims = 3
+    N_iters = 50
     features = 10000
-    x_dims = [2]
+    x_dims = [1, 2, 5]
     n_fns = 1
     bounds_list = []
+    bounds_list.append(torch.tensor([[0.0], [1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
     bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
-    bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     n_samples = 100000
     seed = 42
     seed_init = 10
     kernel = "Matern32"
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.001, 0.01, 0.05, 0.1385, 0.5, 2.0, 4.0]
+    lengthscales = [0.021, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.1385, 0.4, 0.5, 0.8, 1.0, 1.2, 1.5]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 7
+    n_tests = 14
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -74,7 +67,7 @@ def main():
     for test in range(n_tests):
         lengthscale = lengthscales[test]
         
-        for k in range(1):
+        for k in range(n_dims):
             x_dim = x_dims[k]
             bounds = bounds_list[k]
             n_init = 5 * x_dim
@@ -108,7 +101,7 @@ def main():
                 x_train = generate_sobol_points(
                     bounds,
                     n_init,
-                    seed_init + i * (k * n_repeats),
+                    seed_init + i + (k * n_repeats),
                     device
                 )
                 

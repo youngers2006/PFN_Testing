@@ -22,16 +22,16 @@ def compute_comparative_metrics(base_save_dir: str):
     mu_store = data["mu"]
     
     # Data shape extraction
-    x_dims = [2, 5, 10]
+    x_dims = [1, 2, 5]
     methods = ["GP", "PFN", "Random"]
 
     # Sizing
     n_dims = 3
     n_methods = 3
     n_repeats = 21
-    N_iters = 150
+    N_iters = 50
     n_fns = 1
-    n_tests = 3
+    n_tests = 4
     
     # Initialize metric storage
     metrics = {
@@ -100,5 +100,5 @@ def compute_comparative_metrics(base_save_dir: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "results_KT_150/run_20260727_004830" 
+    base_dir = "results_KT_BO_PFN_GP/run_N_50" 
     compute_comparative_metrics(base_dir)

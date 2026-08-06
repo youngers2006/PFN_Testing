@@ -1,21 +1,21 @@
 import torch
 import gpytorch
-import botorch
 from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll, ExactMarginalLogLikelihood
+from botorch.fit import fit_gpytorch_mll
+from gpytorch.mlls import ExactMarginalLogLikelihood
 from botorch.acquisition import qLogExpectedImprovement
 from botorch.optim import optimize_acqf_discrete
 from botorch.models.transforms.outcome import Standardize
 from botorch.models.transforms.input import Normalize
 from gpytorch.kernels import MaternKernel, ScaleKernel
 from gpytorch.priors import GammaPrior
-from Experiments.BO_run_Experiments.Warping_Experiment.Aquisition_sampling import optimise_EI_GP
-from Experiments.BO_run_Experiments.Warping_Experiment.pfn_evaluate import eval_pfn
+from Aquisition_sampling import optimise_EI_GP
+from pfn_evaluate import eval_pfn
 from tqdm import tqdm
-from Experiments.BO_run_Experiments.Warping_Experiment.RFF import RFFSampler
+from RFF import RFFSampler
 from Utils import output_standardise, unscale_outputs
-from Experiments.BO_run_Experiments.Warping_Experiment.HS_warping import HS_noise_sampling
-from Experiments.BO_run_Experiments.Warping_Experiment.NL_warping import NL_warping
+from HS_warping import HS_noise_sampling
+from NL_warping import NL_warping
 
 # Supress warnings
 import warnings
