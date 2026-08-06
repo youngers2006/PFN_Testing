@@ -25,7 +25,7 @@ def main():
         print('cpu')
 
     # Experiments parameters
-    n_tests = 1
+    n_tests = 9
     n_repeats = 21
     n_methods = 3
     n_methods_UQ = 2
@@ -40,6 +40,10 @@ def main():
     n_samples = 100000
     seed = 42
     seed_init = 10
+
+    # params
+    alphas = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    betas = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscale_concentration = 1.2107
@@ -86,9 +90,8 @@ def main():
             )
             
             for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}"):
-                # Randomly generate warping
-                alpha = np.random.uniform(1.0, 5.0)
-                beta = np.random.uniform(1.0, 5.0)
+                alpha = alphas[test]
+                beta = betas[test]
                 
                 # Draw from desired kernel
                 rff_sampler = RFFSampler(
