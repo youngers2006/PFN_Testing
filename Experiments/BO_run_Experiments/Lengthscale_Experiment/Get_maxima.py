@@ -92,7 +92,8 @@ def compute_true_rff_maximum(
 
 def main():
     # List of dimensions
-    dims = [1, 2, 5]
+    dims = [1]
+    n_dims = 1
 
     # Number of repeats
     n_repeats = 21
@@ -108,7 +109,7 @@ def main():
     base_save_dir = "results_LS_BO_PFN_GP/run_N_50"
 
     for test in tqdm(range(n_tests), desc="Optimisation Progress"):
-        for k in range(1):
+        for k in range(n_dims):
             dim = dims[k]
             
             for rep in tqdm(range(n_repeats), desc=f"On test {test}, dimension {dim}", leave=False):

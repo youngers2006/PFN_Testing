@@ -106,7 +106,8 @@ def compute_true_rff_maximum(
 
 def main():
     # List of dimensions
-    dims = [1, 2, 5]
+    dims = [1]
+    n_dims = 1
 
     # Number of repeats
     n_repeats = 21
@@ -127,7 +128,7 @@ def main():
         else:
             non_linear = False
             
-        for k in range(3):
+        for k in range(n_dims):
             dim = dims[k]
             
             for rep in tqdm(range(n_repeats), desc=f"On test {test}, dimension {dim}", leave=False):

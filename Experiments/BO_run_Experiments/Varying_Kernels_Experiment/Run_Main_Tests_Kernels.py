@@ -25,9 +25,10 @@ def main():
     n_repeats = 21
     n_methods = 3
     n_methods_UQ = 2
+    n_dims = 1
     N_iters = 50
     features = 10000
-    x_dims = [1, 2, 5]
+    x_dims = [1]
     n_fns = 1
     bounds_list = []
     bounds_list.append(torch.tensor([[0.0], [1.0]], dtype=torch.float64, device=device))
@@ -74,7 +75,7 @@ def main():
         elif test == 3:
             kernel="RBF"
         
-        for k in range(3):
+        for k in range(n_dims):
             x_dim = x_dims[k]
             bounds = bounds_list[k]
             n_init = 5 * x_dim
