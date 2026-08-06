@@ -112,7 +112,7 @@ def main():
     n_repeats = 21
 
     # Number of tests
-    n_tests = 9
+    n_tests = 5
 
     # Initialise storage
     maxima_store_y = [torch.zeros((n_tests, n_repeats, 1), dtype=torch.float64, device='cpu') for _ in dims]
