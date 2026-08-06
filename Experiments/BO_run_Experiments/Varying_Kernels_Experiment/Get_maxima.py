@@ -94,20 +94,20 @@ def compute_true_rff_maximum(
 
 def main():
     # List of dimensions
-    dims = [2, 5, 10]
+    dims = [1, 2, 5]
 
     # Number of repeats
     n_repeats = 21
 
     # Number of tests
-    n_tests = 3
+    n_tests = 4
 
     # Initialise storage
     maxima_store_y = [torch.zeros((n_tests, n_repeats, 1), dtype=torch.float64, device='cpu') for _ in dims]
     maxima_store_x = [torch.zeros((n_tests, n_repeats, dim), dtype=torch.float64, device='cpu') for dim in dims]
 
     # Filepath
-    base_save_dir = "results_KT_150/run_20260727_004830"
+    base_save_dir = "results_KT_BO_PFN_GP/run_N_50"
 
     for test in tqdm(range(n_tests), desc="Optimisation Progress"):
         for k in range(3):
@@ -115,7 +115,7 @@ def main():
             
             for rep in tqdm(range(n_repeats), desc=f"On test {test}, dimension {dim}", leave=False):
                 #filepath = f"results_KT_50/run_20260714_231826/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
-                filepath = f"results_KT_150/run_20260727_004830/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
+                filepath = f"results_KT_BO_PFN_GP/run_N_50/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
                 max_x, max_y = compute_true_rff_maximum(filepath)
     
                 maxima_store_y[k][test, rep, :] = max_y

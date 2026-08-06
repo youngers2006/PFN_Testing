@@ -6,8 +6,8 @@ from scipy.stats import qmc
 from typing import Tuple
 from tqdm import tqdm
 
-from Experiments.BO_run_Experiments.Warping_Experiment.NL_warping import NL_warping
-from Experiments.BO_run_Experiments.Warping_Experiment.RFF import RFFSampler
+from NL_warping import NL_warping
+from RFF import RFFSampler
 
 # Ensure your RFFSampler is accessible in this namespace
 # from rff_sampler import RFFSampler 
@@ -106,20 +106,20 @@ def compute_true_rff_maximum(
 
 def main():
     # List of dimensions
-    dims = [2, 5, 10]
+    dims = [1, 2, 5]
 
     # Number of repeats
     n_repeats = 21
 
     # Number of tests
-    n_tests = 2
+    n_tests = 9
 
     # Initialise storage
     maxima_store_y = [torch.zeros((n_tests, n_repeats, 1), dtype=torch.float64, device='cpu') for _ in dims]
     maxima_store_x = [torch.zeros((n_tests, n_repeats, dim), dtype=torch.float64, device='cpu') for dim in dims]
 
     # Filepath
-    base_save_dir = "results_Warp_150/run_20260727_122824"
+    base_save_dir = "results_NL_BO_PFN_GP/run_N_50"
 
     for test in tqdm(range(n_tests), desc="Optimisation Progress"):
         if test == 0:
@@ -132,7 +132,7 @@ def main():
             
             for rep in tqdm(range(n_repeats), desc=f"On test {test}, dimension {dim}", leave=False):
                 #filepath = f"results_KT_50/run_20260714_231826/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
-                filepath = f"results_Warp_150/run_20260727_122824/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
+                filepath = f"results_NL_BO_PFN_GP/run_N_50/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
                 max_x, max_y = compute_true_rff_maximum(filepath, non_linear=non_linear)
     
                 maxima_store_y[k][test, rep, :] = max_y
