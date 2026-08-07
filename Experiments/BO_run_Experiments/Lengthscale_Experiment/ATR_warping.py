@@ -134,14 +134,18 @@ class ATR_warped_PFN():
         R = self.secant_approx(y_scaled, x)
         x_L, x_U, x_tr, y_tr, L = self.formulate_trust_regions(R, x_opt, x, y_scaled)
 
+        # Implement jitter to prevent crash
+        if torch.std(y_tr) < 1e-4:
+            y_tr = y_tr + 1e-4 * torch.randn_like(y_tr)
+
         # Warp inputs
-        z = self.input_warping(x_tr, x_U, x_L, R)
+        z_tr = self.input_warping(x_tr, x_U, x_L, R)
 
         # Sample inside warped trust region
         acq_points = self.sample_points(n_acq_points, R)
         
         candidate_idx, acq_value = self.pfn.observe_and_suggest(
-            z,
+            z_tr,
             y_tr,
             acq_points,
             return_actual_ei=True
@@ -153,7 +157,7 @@ class ATR_warped_PFN():
             x_selected = x_selected.unsqueeze(0)
 
         if return_prediction:
-            mu_US, var_US = self.eval_pfn(z, y_tr, z_selected)
+            mu_US, var_US = self.eval_pfn(z_tr, y_tr, z_selected)
             mu, var = self.unscale_outputs(mu_US, var_US, mu_y, std_y)
             return x_selected, acq_value, L, mu, var
         else:
