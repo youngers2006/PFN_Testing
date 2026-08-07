@@ -163,17 +163,6 @@ class ATR_warped_PFN():
         raw_model = self.pfn.model
         criterion = raw_model.criterion
 
-        for name, val in raw_model.named_parameters():
-            if val.device.type != "cuda":
-                print(f"Parameter on CPU: {name}")
-            else:
-                print(f"Buffer on Cuda: {name}")
-        for name, val in raw_model.named_buffers():
-            if val.device.type != "cuda":
-                print(f"Buffer on CPU: {name}")
-            else:
-                print(f"Buffer on Cuda: {name}")
-
         # Compute bin centres
         borders = criterion.borders.clone().detach()
         y_grid = (borders[:-1] + borders[1:]) / 2.0
@@ -194,7 +183,7 @@ class ATR_warped_PFN():
             print(Y_seq.device)
             # Cast inputs to floats to match tansformer internals
             logits = raw_model(
-                (X_seq.to(torch.float32), Y_seq.to(torch.float32)), 
+                (X_seq.to(torch.float32, device='cpu'), Y_seq.to(torch.float32, device='cpu')), 
                 single_eval_pos=len(train_z)
             )
             
