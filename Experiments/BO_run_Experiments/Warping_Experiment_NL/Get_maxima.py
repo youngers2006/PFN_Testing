@@ -120,7 +120,7 @@ def main():
     maxima_store_x = [torch.zeros((n_tests, n_repeats, dim), dtype=torch.float64, device='cpu') for dim in dims]
 
     # Filepath
-    base_save_dir = "results_NL_BO_PFN_GP/run_N_50"
+    base_save_dir = "results_NL_BO_PFN_GP/run_N_50_D_2"
 
     for test in tqdm(range(n_tests), desc="Optimisation Progress"):
         if test == 0:
@@ -133,7 +133,7 @@ def main():
             
             for rep in tqdm(range(n_repeats), desc=f"On test {test}, dimension {dim}", leave=False):
                 #filepath = f"results_KT_50/run_20260714_231826/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
-                filepath = f"results_NL_BO_PFN_GP/run_N_50/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
+                filepath = f"results_NL_BO_PFN_GP/run_N_50_D_2/test_{test}/dim_{dim}/repeat_{rep}/problem.npz"
                 max_x, max_y = compute_true_rff_maximum(filepath, non_linear=non_linear)
     
                 maxima_store_y[k][test, rep, :] = max_y
