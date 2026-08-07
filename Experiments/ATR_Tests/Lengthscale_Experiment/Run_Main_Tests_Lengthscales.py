@@ -1,6 +1,6 @@
 import os
 import torch
-from Experiment_fns import Experiment_GP, Experiment_PFN, Experiment_Random
+from Experiment_fns import Experiment_ATR_PFN
 from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
@@ -58,12 +58,13 @@ def main():
     mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     alpha_store =   [torch.zeros((n_tests, n_methods_UQ, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
+    tr_store = [torch.zeros((n_tests, n_methods, n_repeats, N_iters, d), dtype=torch.float64, device='cpu') for d in x_dims]
 
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
     ATR_pfn = ATR_warped_PFN(
         l_target=0.4, 
-        model_path=model_path
+        model_path=model_path,
         device='cuda'
     )
 
@@ -108,45 +109,21 @@ def main():
                     device
                 )
                 
-                # Run random sampling
-                x_query_arr_rs, x_init_rs, y_true_arr_rs, y_init_rs, y_best_arr_rs = Experiment_Random(
-                    rff_sampler, x_train, bounds, N_iters
-                )
-    
-                # Run GP experiment
-                x_query_arr_GP, x_init_GP, y_true_arr_GP, y_init_GP, y_best_arr_GP, mu_arr_GP, var_arr_GP, alpha_arr_GP = Experiment_GP(
-                    rff_sampler, x_train, N_iters, sobol_acq_points
-                )
-    
                 # Run PFN experiment
-                x_query_arr_PFN, x_init_PFN, y_true_arr_PFN, y_init_PFN, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN = Experiment_PFN(
-                    pfn, rff_sampler, x_train, N_iters, sobol_acq_points
+                x_query_arr_PFN, x_init_PFN, y_true_arr_PFN, y_init_PFN, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN, tr_arr_PFN = Experiment_ATR_PFN(
+                    ATR_pfn, rff_sampler, x_train, N_iters, n_acq_points=n_samples
                 )
     
                 # Store Data (in_dim, method, test_iter, opt_iter, data)
-                x_query_store[k][test, 0, i, :, :] = x_query_arr_GP.detach().cpu()
-                x_init_store[k][test, 0, i, :, :] = x_init_GP.detach().cpu()
-                y_init_store[k][test, 0, i, :, :] = y_init_GP.detach().cpu()
-                y_true_store[k][test, 0, i, :, :] = y_true_arr_GP.detach().cpu()
-                y_best_store[k][test, 0, i, :, :] = y_best_arr_GP.detach().cpu()
-                mu_store[k][test, 0, i, :, :] = mu_arr_GP.detach().cpu()
-                var_store[k][test, 0, i, :, :] = var_arr_GP.detach().cpu()
-                alpha_store[k][test, 0, i, :, :] = alpha_arr_GP.detach().cpu()
-    
-                x_query_store[k][test, 1, i, :, :] = x_query_arr_PFN.detach().cpu()
-                x_init_store[k][test, 1, i, :, :] = x_init_PFN.detach().cpu()
-                y_init_store[k][test, 1, i, :, :] = y_init_PFN.detach().cpu()
-                y_true_store[k][test, 1, i, :, :] = y_true_arr_PFN.detach().cpu()
-                y_best_store[k][test, 1, i, :, :] = y_best_arr_PFN.detach().cpu()
-                mu_store[k][test, 1, i, :, :] = mu_arr_PFN.detach().cpu()
-                var_store[k][test, 1, i, :, :] = var_arr_PFN.detach().cpu()
-                alpha_store[k][test, 1, i, :, :] = alpha_arr_PFN.detach().cpu()
-    
-                x_query_store[k][test, 2, i, :, :] = x_query_arr_rs.detach().cpu()
-                x_init_store[k][test, 2, i, :, :] = x_init_rs.detach().cpu()
-                y_init_store[k][test, 2, i, :, :] = y_init_rs.detach().cpu()
-                y_true_store[k][test, 2, i, :, :] = y_true_arr_rs.detach().cpu()
-                y_best_store[k][test, 2, i, :, :] = y_best_arr_rs.detach().cpu()
+                x_query_store[k][test, 0, i, :, :] = x_query_arr_PFN.detach().cpu()
+                x_init_store[k][test, 0, i, :, :] = x_init_PFN.detach().cpu()
+                y_init_store[k][test, 0, i, :, :] = y_init_PFN.detach().cpu()
+                y_true_store[k][test, 0, i, :, :] = y_true_arr_PFN.detach().cpu()
+                y_best_store[k][test, 0, i, :, :] = y_best_arr_PFN.detach().cpu()
+                mu_store[k][test, 0, i, :, :] = mu_arr_PFN.detach().cpu()
+                var_store[k][test, 0, i, :, :] = var_arr_PFN.detach().cpu()
+                alpha_store[k][test, 0, i, :, :] = alpha_arr_PFN.detach().cpu()
+                tr_store[k][test, 0, i, :, :] = tr_arr_PFN.detach().cpu()
     
     # Save all data
     data_dict = {
@@ -155,6 +132,7 @@ def main():
         "y_true": y_true_store,
         "y_init": y_init_store,
         "y_best": y_best_store,
+        "tr_size": tr_store,
         "mu": mu_store,
         "var": var_store,
         "alpha": alpha_store,

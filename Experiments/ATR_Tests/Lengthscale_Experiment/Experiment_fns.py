@@ -1,18 +1,6 @@
 import torch
-import gpytorch
-from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_mll
-from gpytorch.mlls import ExactMarginalLogLikelihood
-from botorch.acquisition import qExpectedImprovement
-from botorch.models.transforms.outcome import Standardize
-from gpytorch.kernels import MaternKernel, ScaleKernel
-from gpytorch.priors import GammaPrior, SmoothedBoxPrior
-from Aquisition_sampling import optimise_EI_GP
-from pfn_evaluate import eval_pfn
 from tqdm import tqdm
 from RFF import RFFSampler
-from gpytorch.likelihoods import GaussianLikelihood
-from Utils import output_standardise, unscale_outputs
 from ATR_warping import ATR_warped_PFN
 
 # Supress warnings
@@ -62,4 +50,4 @@ def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train
         alpha_arr[i, :] = acq_value.detach().cpu().flatten()[0]
         tr_arr[i, :] = tr_size.detach().cpu()
 
-    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr
+    return x_query_arr, x_init, y_true_arr, y_init, y_best_arr, mu_arr, var_arr, alpha_arr, tr_arr
