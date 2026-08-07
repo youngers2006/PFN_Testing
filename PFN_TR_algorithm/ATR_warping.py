@@ -25,6 +25,7 @@ class ATR_warped_PFN():
         self.L_min = L_min
         self.L_max = L_max
         self.eps = eps
+        self.device = device
 
     def unscale_outputs(self, mu_y_out_s, var_y_out_s, mu_y, std_y):
         mu_y_out_us = (mu_y_out_s * std_y) + mu_y
@@ -121,6 +122,11 @@ class ATR_warped_PFN():
         return z_acq_points
 
     def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, return_prediction=True):
+        # Make sure all on correct device
+        x = x.to(device=self.device)
+        y = y.to(device=self.device)
+        x_opt = x_opt.to(device=self.device)
+
         # Standardise y
         y_scaled, mu_y, std_y = self.standardise(y)
 
@@ -134,7 +140,7 @@ class ATR_warped_PFN():
         # Sample inside warped trust region
         acq_points = self.sample_points(n_acq_points, R)
         
-        candidate_idx, acq_value_scaled = self.pfn.observe_and_suggest(
+        candidate_idx, acq_value = self.pfn.observe_and_suggest(
             z,
             y_tr,
             acq_points,
@@ -142,7 +148,9 @@ class ATR_warped_PFN():
         )
         z_selected = acq_points[candidate_idx]
         x_selected = self.output_warping(z_selected, x_U, x_L, R)
-        acq_value = acq_value_scaled.cpu() * std_y.cpu()
+
+        if x_selected.ndim == 1:
+            x_selected = x_selected.unsqueeze(0)
 
         if return_prediction:
             mu_US, var_US = self.eval_pfn(z, y_tr, z_selected)
@@ -173,7 +181,7 @@ class ATR_warped_PFN():
         with torch.no_grad():
             # Cast inputs to floats to match tansformer internals
             logits = raw_model(
-                (X_seq.to(torch.float32), Y_seq.to(torch.float32)), 
+                (X_seq.to(dtype=torch.float32), Y_seq.to(dtype=torch.float32)), 
                 single_eval_pos=len(train_z)
             )
             
