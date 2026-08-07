@@ -12,6 +12,10 @@ def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train
     # Compute values of sample initial points
     y_train = rff_sampler.sample(x_train)
 
+    # Move devices
+    y_train = y_train.to(device=atr_pfn.device)
+    x_train = x_train.to(device=atr_pfn.device)
+
     # Get best point
     max_idx = torch.argmax(y_train)
     x_best = x_train[max_idx]
