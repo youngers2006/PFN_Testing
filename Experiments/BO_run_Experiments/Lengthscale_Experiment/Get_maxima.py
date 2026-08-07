@@ -92,7 +92,7 @@ def compute_true_rff_maximum(
 
 def main():
     # List of dimensions
-    dims = [1]
+    dims = [2]
     n_dims = 1
 
     # Number of repeats

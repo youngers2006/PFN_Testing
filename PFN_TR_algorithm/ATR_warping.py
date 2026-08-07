@@ -59,7 +59,9 @@ class ATR_warped_PFN():
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
-            return torch.ones((d,), dtype=x.dtype, device=x.device)
+            ones = torch.ones((d,), dtype=x.dtype, device=x.device)
+            zeros = torch.zeros((d,), dtype=x.dtype, device=x.device)
+            return zeros, ones, x, y, ones
 
         # Compute trust region size needed to warp the space globally
         L = torch.clamp(1 / (self.l_target * (R + self.eps)), min=self.L_min, max=self.L_max)
@@ -115,9 +117,9 @@ class ATR_warped_PFN():
         z_acq_points = z_unit * u
         return z_acq_points
 
-    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, return_tr_size=True):
+    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, return_prediction=True):
         # Standardise y
-        y_scaled, _, _ = self.standardise(y)
+        y_scaled, mu_y, std_y = self.standardise(y)
 
         # Compute roughness parameter and find trust region
         R = self.secant_approx(y_scaled, x)
@@ -138,7 +140,51 @@ class ATR_warped_PFN():
         z_selected = acq_points[candidate_idx]
         x_selected = self.output_warping(z_selected, x_U, x_L, R)
 
-        if return_tr_size:
-            return x_selected, acq_value, L
+        if return_prediction:
+            mu_US, var_US = self.eval_pfn(z, y_tr, z_selected)
+            mu, var = self.unscale_outputs(mu_US, var_US, mu_y, std_y)
+            return x_selected, acq_value, L, mu, var
         else:
-            return x_selected, acq_value
+            return x_selected, acq_value, L
+
+    def eval_pfn(self, train_z, train_y, z):
+        raw_model = self.pfn.model
+        criterion = raw_model.criterion
+
+        # Compute bin centres
+        borders = criterion.borders.clone().detach()
+        y_grid = (borders[:-1] + borders[1:]) / 2.0
+
+        # Make input 2d
+        if z.dim() == 1:
+            z = z.unsqueeze(0)
+            
+        # add query point into the input sequence
+        X_seq = torch.cat([train_z, z], dim=0).unsqueeze(1) 
+
+        # pad output sequence to match input
+        dummy_y = torch.zeros((z.shape[0], train_y.shape[1]), dtype=train_y.dtype, device=train_y.device)
+        Y_seq = torch.cat([train_y, dummy_y], dim=0).unsqueeze(1)
+
+        with torch.no_grad():
+            # Cast inputs to floats to match tansformer internals
+            logits = raw_model(
+                (X_seq.to(torch.float32), Y_seq.to(torch.float32)), 
+                single_eval_pos=len(train_z)
+            )
+            
+        # remove sequence and batch single dims
+        logits = logits.squeeze()
+
+        # Convert logits to pobabilities over bins
+        probabilities = torch.softmax(logits, dim=-1)
+        mu_pred = torch.sum(probabilities * y_grid, dim=-1)
+        var_pred = torch.sum(probabilities * (y_grid - mu_pred.unsqueeze(-1))**2, dim=-1)
+
+        # Ensure outputs are 1D to match standard BO dimension handling
+        if mu_pred.dim() == 0:
+            mu_pred = mu_pred.unsqueeze(0)
+            var_pred = var_pred.unsqueeze(0)
+            
+        # Cast back to double to match storage containers
+        return mu_pred.to(torch.float64), var_pred.to(torch.float64)
