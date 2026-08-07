@@ -9,7 +9,7 @@ from RFF import RFFSampler
 
 def main():
     # Save paths
-    base_save_dir = f"results_KT_BO_PFN_GP/run_N_50_D_2"
+    base_save_dir = f"results_KT_BO_PFN_GP/run_N_50_D_5"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -28,10 +28,10 @@ def main():
     n_dims = 1
     N_iters = 50
     features = 10000
-    x_dims = [2]
+    x_dims = [5]
     n_fns = 1
     bounds_list = []
-    bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
+    bounds_list.append(torch.tensor([[0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]], dtype=torch.float64, device=device))
     n_samples = 100000
     seed = 42
     seed_init = 10
