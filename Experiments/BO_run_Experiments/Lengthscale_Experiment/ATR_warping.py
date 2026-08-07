@@ -163,10 +163,10 @@ class ATR_warped_PFN():
         raw_model = self.pfn.model
         criterion = raw_model.criterion
 
-        for name, val in model.named_parameters():
+        for name, val in raw_model.named_parameters():
             if val.device.type != "cuda":
                 print(f"Parameter on CPU: {name}")
-        for name, val in model.named_buffers():
+        for name, val in raw_model.named_buffers():
             if val.device.type != "cuda":
                 print(f"Buffer on CPU: {name}")
 
