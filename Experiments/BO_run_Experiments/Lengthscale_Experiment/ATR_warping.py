@@ -161,9 +161,11 @@ class ATR_warped_PFN():
         criterion = raw_model.criterion
 
         model_device = next(raw_model.parameters()).device
+        print(model_device)
         for module in raw_model.modules():
             for attr_name, attr_val in module.__dict__.items():
                 if isinstance(attr_val, torch.Tensor) and attr_val.device != model_device:
+                    print(f"changed {attr_name} to other device")
                     setattr(module, attr_name, attr_val.to(model_device))
 
         # Compute bin centres
