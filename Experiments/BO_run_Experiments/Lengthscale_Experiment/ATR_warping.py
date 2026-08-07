@@ -143,13 +143,21 @@ class ATR_warped_PFN():
 
         # Sample inside warped trust region
         acq_points = self.sample_points(n_acq_points, R)
+
+        try:
+            candidate_idx, acq_value = self.pfn.observe_and_suggest(
+                z_tr,
+                y_tr,
+                acq_points,
+                return_actual_ei=True
+            )
+        except Exception as e:
+            print("\n[YEO-JOHNSON CRASH DIAGNOSTIC]")
+            print(f"N points in y_tr: {len(y_tr)}")
+            print(f"Raw y_tr values:\n{y_tr.cpu().numpy().flatten()}")
+            print(f"y_tr std: {torch.std(y_tr).item():.6f}")
+            raise e
         
-        candidate_idx, acq_value = self.pfn.observe_and_suggest(
-            z_tr,
-            y_tr,
-            acq_points,
-            return_actual_ei=True
-        )
         z_selected = acq_points[candidate_idx]
         x_selected = self.output_warping(z_selected, x_U, x_L, R)
 
