@@ -157,6 +157,9 @@ class ATR_warped_PFN():
             return x_selected, acq_value, L
 
     def eval_pfn(self, train_z, train_y, z):
+        print(train_z.device)
+        print(train_y.device)
+        print(z.device)
         raw_model = self.pfn.model
         criterion = raw_model.criterion
 
@@ -176,6 +179,9 @@ class ATR_warped_PFN():
         Y_seq = torch.cat([train_y, dummy_y], dim=0).unsqueeze(1)
 
         with torch.no_grad():
+            print(X_seq.device)
+            print(Y_seq.device)
+            print(raw_model.device)
             # Cast inputs to floats to match tansformer internals
             logits = raw_model(
                 (X_seq.to(torch.float32), Y_seq.to(torch.float32)), 
