@@ -1,6 +1,6 @@
 import os
 import torch
-from Experiment_fns import Experiment_ATR_PFN
+from Experiment_fns_warping import Experiment_ATR_PFN
 from Aquisition_sampling import generate_sobol_points
 import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
