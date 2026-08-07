@@ -3,6 +3,9 @@ import pfns4bo
 from pfns4bo.scripts.acquisition_functions import TransformerBOMethod
 
 class ATR_warped_PFN():
+    """
+    Anisotropic trust region warping for PFNs
+    """
     def __init__(
             self, 
             l_target, 
@@ -131,7 +134,7 @@ class ATR_warped_PFN():
         # Sample inside warped trust region
         acq_points = self.sample_points(n_acq_points, R)
         
-        candidate_idx, acq_value = self.pfn.observe_and_suggest(
+        candidate_idx, acq_value_scaled = self.pfn.observe_and_suggest(
             z,
             y_tr,
             acq_points,
@@ -139,6 +142,7 @@ class ATR_warped_PFN():
         )
         z_selected = acq_points[candidate_idx]
         x_selected = self.output_warping(z_selected, x_U, x_L, R)
+        acq_value = acq_value_scaled.cpu() * std_y.cpu()
 
         if return_prediction:
             mu_US, var_US = self.eval_pfn(z, y_tr, z_selected)
