@@ -183,7 +183,7 @@ class ATR_warped_PFN():
             print(Y_seq.device)
             # Cast inputs to floats to match tansformer internals
             logits = raw_model(
-                (X_seq.to(torch.float32, device='cpu'), Y_seq.to(torch.float32, device='cpu')), 
+                (X_seq.to(dtype=torch.float32, device='cpu'), Y_seq.to(dtype=torch.float32, device='cpu')), 
                 single_eval_pos=len(train_z)
             )
             
