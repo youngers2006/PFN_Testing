@@ -157,11 +157,14 @@ class ATR_warped_PFN():
             return x_selected, acq_value, L
 
     def eval_pfn(self, train_z, train_y, z):
-        print(train_z.device)
-        print(train_y.device)
-        print(z.device)
         raw_model = self.pfn.model
         criterion = raw_model.criterion
+
+        model_device = next(raw_model.parameters()).device
+        for module in raw_model.modules():
+            for attr_name, attr_val in module.__dict__.items():
+                if isinstance(attr_val, torch.Tensor) and attr_val.device != model_device:
+                    setattr(module, attr_name, attr_val.to(model_device))
 
         # Compute bin centres
         borders = criterion.borders.clone().detach()
@@ -179,11 +182,9 @@ class ATR_warped_PFN():
         Y_seq = torch.cat([train_y, dummy_y], dim=0).unsqueeze(1)
 
         with torch.no_grad():
-            print(X_seq.device)
-            print(Y_seq.device)
             # Cast inputs to floats to match tansformer internals
             logits = raw_model(
-                (X_seq.to(dtype=torch.float32, device='cpu'), Y_seq.to(dtype=torch.float32, device='cpu')), 
+                (X_seq.to(dtype=torch.float32), Y_seq.to(dtype=torch.float32)), 
                 single_eval_pos=len(train_z)
             )
             
