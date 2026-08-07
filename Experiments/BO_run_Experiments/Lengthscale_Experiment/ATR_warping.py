@@ -149,6 +149,9 @@ class ATR_warped_PFN():
         z_selected = acq_points[candidate_idx]
         x_selected = self.output_warping(z_selected, x_U, x_L, R)
 
+        if x_selected.ndim == 1:
+            x_selected = x_selected.unsqueeze(0)
+
         if return_prediction:
             mu_US, var_US = self.eval_pfn(z, y_tr, z_selected)
             mu, var = self.unscale_outputs(mu_US, var_US, mu_y, std_y)
