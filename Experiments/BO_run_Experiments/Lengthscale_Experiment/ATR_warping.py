@@ -25,6 +25,7 @@ class ATR_warped_PFN():
         self.L_min = L_min
         self.L_max = L_max
         self.eps = eps
+        self.device = device
 
     def unscale_outputs(self, mu_y_out_s, var_y_out_s, mu_y, std_y):
         mu_y_out_us = (mu_y_out_s * std_y) + mu_y
@@ -121,6 +122,11 @@ class ATR_warped_PFN():
         return z_acq_points
 
     def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, return_prediction=True):
+        # Make sure all on correct device
+        x = x.to(device=self.device)
+        y = y.to(device=self.device)
+        x_opt = x_opt.to(device=self.device)
+
         # Standardise y
         y_scaled, mu_y, std_y = self.standardise(y)
 
