@@ -36,6 +36,10 @@ def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train
             x_train, y_train, x_best, n_acq_points=n_acq_points, return_prediction=True
         )
 
+        print(x_train.device)
+        print(y_train.device)
+        print(next_x.device)
+
         # Evaluate and add the new point to the training set
         next_y = rff_sampler.sample(next_x)
         x_train = torch.cat([x_train, next_x])
