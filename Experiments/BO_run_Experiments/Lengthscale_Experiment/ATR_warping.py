@@ -165,7 +165,7 @@ class ATR_warped_PFN():
         for module in raw_model.modules():
             for attr_name, attr_val in module.__dict__.items():
                 if isinstance(attr_val, torch.Tensor) and attr_val.device != model_device:
-                    print(f"changed {attr_name} to other device")
+                    print("changed to other device")
                     setattr(module, attr_name, attr_val.to(model_device))
 
         # Compute bin centres
