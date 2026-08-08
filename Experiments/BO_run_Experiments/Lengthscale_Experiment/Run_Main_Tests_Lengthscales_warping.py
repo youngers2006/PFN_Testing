@@ -10,7 +10,7 @@ from ATR_warping import ATR_warped_PFN
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode"
+    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode_restarts"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device

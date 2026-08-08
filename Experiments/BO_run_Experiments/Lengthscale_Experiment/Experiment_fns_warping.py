@@ -7,7 +7,7 @@ from ATR_warping import ATR_warped_PFN
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning, module="pfns4bo")
 
-def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train, N_iters, n_acq_points):
+def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train, N_iters, n_acq_points, restarts=False, restart_bound=5):
 
     # Compute values of sample initial points
     y_train = rff_sampler.sample(x_train)
@@ -33,17 +33,47 @@ def Experiment_ATR_PFN(atr_pfn: ATR_warped_PFN, rff_sampler: RFFSampler, x_train
     alpha_arr = torch.zeros(N_iters, 1, dtype=torch.float64, device='cpu')
     tr_arr = torch.zeros(N_iters, x_train.shape[1], dtype=torch.float64, device='cpu')
 
+    if restarts:
+        fail_counter = 0
+
+    x_anchor = x_best
+    y_anchor = y_train[max_idx].item()
+
     # BO test
     for i in tqdm(range(N_iters), desc="PFN", leave=False):
 
         next_x, acq_value, tr_size, candidate_mean, candidate_var = atr_pfn.observe_and_suggest(
-            x_train, y_train, x_best, n_acq_points=n_acq_points, return_prediction=True
+            x_train, y_train, x_anchor, n_acq_points=n_acq_points, return_prediction=True
         )
 
         # Evaluate and add the new point to the training set
         next_y = rff_sampler.sample(next_x)
         x_train = torch.cat([x_train, next_x])
         y_train = torch.cat([y_train, next_y])
+
+        if restarts:
+            next_y_val = next_y.item()
+            if next_y_val > y_anchor + 1e-4:
+                x_anchor = next_x
+                y_anchor = next_y_val
+                fail_counter = 0
+            else:
+                fail_counter += 1
+
+            if fail_counter > restart_bound:
+                restart_x = torch.rand((1, x_train.shape[1]), dtype=x_train.dtype, device=atr_pfn.device)
+                restart_y = rff_sampler.sample(restart_x)
+                
+                x_train = torch.cat([x_train, restart_x])
+                y_train = torch.cat([y_train, restart_y])
+                
+                x_anchor = restart_x
+                y_anchor = restart_y.item()
+                fail_counter = 0
+        else:
+            best_idx = torch.argmax(y_train)
+            x_anchor = x_train[best_idx].unsqueeze(0) 
+            y_anchor = y_train[best_idx].item()
 
         # Record data
         x_query_arr[i, :] = next_x.detach().cpu()
