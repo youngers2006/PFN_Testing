@@ -42,7 +42,7 @@ def compute_comparative_metrics(base_save_dir_1: str, base_save_dir_2: str):
     # Initialize metric storage
     metrics = {
         "regret": torch.zeros((n_tests, n_dims, n_methods, n_repeats, N_iters)),
-        "pred_error": torch.zeros((n_tests, n_dims, 2, n_repeats, N_iters)), # GP & PFN only
+        "pred_error": torch.zeros((n_tests, n_dims, n_methods, n_repeats, N_iters)), # GP & PFN only
         "rank_of_method": torch.zeros((n_tests, n_dims, n_methods, n_repeats, N_iters)),
         "spearman_gp_pfn": torch.zeros((n_tests, n_dims, N_iters)),
         "spearman_gp_rand": torch.zeros((n_tests, n_dims, N_iters)),
@@ -83,7 +83,7 @@ def compute_comparative_metrics(base_save_dir_1: str, base_save_dir_2: str):
                         elif m_idx == 3:
                             queried_y = y_true_store_warp[k][test, 0, rep, t, 0].item()
                             pred_mu = mu_store_warp[k][test, 0, rep, t, 0].item()
-                            metrics["pred_error"][test, k, m_idx, rep, t] = abs(pred_mu - queried_y)
+                            metrics["pred_error"][test, k, 3, rep, t] = abs(pred_mu - queried_y)
                     
                     # Rank between methods
                     y_t_vals_main = y_true_store_main[k][test, :, rep, t, 0].numpy()
