@@ -9,8 +9,8 @@ class ATR_warped_PFN():
     def __init__(
             self, 
             l_target, 
-            L_min, 
-            L_max, 
+            L_min=0.01, 
+            L_max=1.0, 
             eps=1e-12, 
             model_path=None, 
             device='cpu'
@@ -73,6 +73,8 @@ class ATR_warped_PFN():
 
         # Compute ideal tr size
         L_raw = 1 / (self.l_target * (R + self.eps))
+        L_min = self.L_min * torch.ones_like(L_raw)
+        L_max = self.L_max * torch.ones_like(L_raw)
 
         # K-NN guardrail
         if N >= k_min_samples:
@@ -83,7 +85,7 @@ class ATR_warped_PFN():
             L_density = torch.ones((d,), dtype=x.dtype, device=x.device)
 
         # Compute trust region size needed to warp the space globally
-        L = torch.clamp(L_raw, min=torch.clamp(L_density, min=self.L_min), max=self.L_max)
+        L = torch.clamp(L_raw, min=torch.clamp(L_density, min=L_min), max=L_max)
 
         # Compute raw upper and lower trust region limits when centred around the current optima
         x_L_ideal = x_opt - (L / 2.0)
@@ -115,7 +117,7 @@ class ATR_warped_PFN():
             x_tr = x[idx]
             y_tr = y[idx]
             max_dist = torch.max(torch.abs(x_tr - x_opt), dim=0).values
-            L = torch.clamp(2.0 * max_dist, min=self.L_min, max=self.L_max)
+            L = torch.clamp(2.0 * max_dist, min=L_min, max=L_max)
             x_L = torch.clamp(x_opt - (L / 2.0), 0.0, 1.0)
             x_U = torch.clamp(x_opt + (L / 2.0), 0.0, 1.0)
 
