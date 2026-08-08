@@ -10,7 +10,7 @@ from ATR_warping import ATR_warped_PFN
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode_restarts"
+    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_1_mode_restarts"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -58,7 +58,7 @@ def main():
     alpha_store =   [torch.zeros((n_tests, n_methods_UQ, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     tr_store = [torch.zeros((n_tests, n_methods, n_repeats, N_iters, d), dtype=torch.float64, device='cpu') for d in x_dims]
 
-    filepath_data = f"results_LS_BO_PFN_GP/run_N_50_D_2/experimental_results.pt"
+    filepath_data = f"results_LS_BO_PFN_GP/run_N_50_D_1/experimental_results.pt"
     data = torch.load(filepath_data)
     x_init_store = data["x_init"]
     y_init_store = data["y_init"]
@@ -78,7 +78,7 @@ def main():
             
             for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}"):
                 # Save RFF function draw
-                filepath_problem = f"results_LS_BO_PFN_GP/run_N_50_D_2/test_{test}/dim_{x_dim}/repeat_{i}/problem.npz"
+                filepath_problem = f"results_LS_BO_PFN_GP/run_N_50_D_1/test_{test}/dim_{x_dim}/repeat_{i}/problem.npz"
 
                 rff_sampler = RFFSampler(
                     num_features=1,
@@ -94,7 +94,7 @@ def main():
                 
                 # Run PFN experiment
                 x_query_arr_PFN, _, y_true_arr_PFN, _, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN, tr_arr_PFN = Experiment_ATR_PFN(
-                    ATR_pfn, rff_sampler, x_train, N_iters, n_acq_points=n_samples
+                    ATR_pfn, rff_sampler, x_train, N_iters, n_acq_points=n_samples, restarts=True
                 )
     
                 # Store Data (in_dim, method, test_iter, opt_iter, data)
