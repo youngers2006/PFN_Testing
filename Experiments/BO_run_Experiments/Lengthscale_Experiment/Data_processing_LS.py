@@ -23,9 +23,9 @@ def compute_comparative_metrics(base_save_dir_1: str, base_save_dir_2: str):
     y_best_store_main = data_1["y_best"]
     mu_store_main = data_1["mu"]
 
-    y_true_store_warp = data_1["y_true"]
-    y_best_store_warp = data_1["y_best"]
-    mu_store_warp = data_1["mu"]
+    y_true_store_warp = data_2["y_true"]
+    y_best_store_warp = data_2["y_best"]
+    mu_store_warp = data_2["mu"]
     
     # Data shape extraction
     x_dims = [1]
