@@ -165,12 +165,14 @@ class ATR_warped_PFN():
         )
 
         # Prevent clustered points causing a crash
-        N_tr = len(y_tr)
         std_tr = torch.std(y_tr, unbiased=False)
         if torch.isnan(std_tr) or std_tr < 1e-4:
-            y_tr = y_tr + 0.05 * torch.randn_like(y_tr)
-        elif N_tr <= 12:
-            y_tr = y_tr + (0.05 * std_tr) * torch.randn_like(y_tr)
+            y_tr = y_tr + 1e-4 * torch.randn_like(y_tr)
+        else:
+            med_tr = torch.median(y_tr)
+            mad_tr = torch.median(torch.abs(y_tr - med_tr))
+            if mad_tr < 1e-4 * std_tr:
+                y_tr = y_tr + (0.05 * std_tr) * torch.randn_like(y_tr)
 
         # Warp inputs
         z_tr = self.input_warping(x_tr, x_U, x_L, R)
