@@ -66,7 +66,7 @@ def main():
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
     ATR_pfn = ATR_warped_PFN(
-        l_target=0.4, 
+        l_target=0.1385, 
         model_path=model_path,
         device='cuda'
     )
