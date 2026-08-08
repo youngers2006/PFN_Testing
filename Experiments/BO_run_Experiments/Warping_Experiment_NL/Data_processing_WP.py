@@ -22,16 +22,16 @@ def compute_comparative_metrics(base_save_dir: str):
     mu_store = data["mu"]
     
     # Data shape extraction
-    x_dims = [2, 5, 10]
+    x_dims = [1]
     methods = ["GP", "PFN", "Random"]
 
     # Sizing
-    n_dims = 3
+    n_dims = 1
     n_methods = 3
     n_repeats = 21
-    N_iters = 150
+    N_iters = 50
     n_fns = 1
-    n_tests = 2
+    n_tests = 1
     
     # Initialize metric storage
     metrics = {
@@ -94,11 +94,11 @@ def compute_comparative_metrics(base_save_dir: str):
                 metrics["spearman_pfn_rand"][test, k, t] = rho_pfn_rand if not np.isnan(rho_pfn_rand) else 0.0
 
     # Save metrics
-    save_path = os.path.join(base_save_dir, "baseline_metrics.pt")
+    save_path = os.path.join(base_save_dir, "metrics_store.pt")
     torch.save(metrics, save_path)
     print(f"Metrics evaluated and saved successfully to {save_path}.")
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir = "results_Warp_150/run_20260727_122824" 
+    base_dir = "results_NL_BO_PFN_GP/run_N_50_D_1"
     compute_comparative_metrics(base_dir)
