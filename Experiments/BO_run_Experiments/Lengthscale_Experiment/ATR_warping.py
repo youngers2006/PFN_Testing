@@ -9,8 +9,8 @@ class ATR_warped_PFN():
     def __init__(
             self, 
             l_target, 
-            L_min=0.01, 
-            L_max=1.0, 
+            L_min, 
+            L_max, 
             eps=1e-12, 
             model_path=None, 
             device='cpu'
@@ -34,13 +34,17 @@ class ATR_warped_PFN():
 
     def standardise(self, y):
         mu_y = torch.mean(y, dim=0)
-        std_y = torch.std(y, dim=0)
+        std_y = torch.std(y, dim=0, unbiased=False)
         y = (y - mu_y) / torch.clamp(std_y, min=1e-8)
         return y, mu_y, std_y
 
     def secant_approx(self, y: torch.Tensor, x: torch.Tensor):
         # Get shape of inputs
-        N, _ = x.shape
+        N, d = x.shape
+
+        # Ensure there is enough points to do the approximation
+        if N < 2:
+            return torch.ones((d,), dtype=x.dtype, device=x.device)
 
         # Add second dimension to y if not already present
         if y.ndim == 1:
@@ -59,7 +63,7 @@ class ATR_warped_PFN():
         R = torch.median(slopes, dim=0).values
         return R
     
-    def formulate_trust_regions(self, R, x_opt, x, y):
+    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=4):
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
@@ -67,8 +71,19 @@ class ATR_warped_PFN():
             zeros = torch.zeros((d,), dtype=x.dtype, device=x.device)
             return zeros, ones, x, y, ones
 
+        # Compute ideal tr size
+        L_raw = 1 / (self.l_target * (R + self.eps))
+
+        # K-NN guardrail
+        if N >= k_min_samples:
+            d_inf = torch.max(torch.abs(x - x_opt), dim=-1).values
+            d_k = torch.kthvalue(d_inf, k=k_min_samples).values
+            L_density = torch.minimum(torch.minimum(2 * d_k, d_k + x_opt), d_k + (1.0 - x_opt))
+        else:
+            L_density = torch.ones((d,), dtype=x.dtype, device=x.device)
+
         # Compute trust region size needed to warp the space globally
-        L = torch.clamp(1 / (self.l_target * (R + self.eps)), min=self.L_min, max=self.L_max)
+        L = torch.clamp(L_raw, min=torch.clamp(L_density, min=self.L_min), max=self.L_max)
 
         # Compute raw upper and lower trust region limits when centred around the current optima
         x_L_ideal = x_opt - (L / 2.0)
@@ -92,6 +107,17 @@ class ATR_warped_PFN():
         mask = torch.all(in_tr, dim=-1)
         x_tr = x[mask]
         y_tr = y[mask]
+
+        # Hard bounds just in case float storage causes issues
+        if len(x_tr) < k_min_samples and N >= k_min_samples:
+            dist_inf = torch.max(torch.abs(x - x_opt), dim=-1).values
+            _, idx = torch.topk(dist_inf, k=k_min_samples, largest=False)
+            x_tr = x[idx]
+            y_tr = y[idx]
+            max_dist = torch.max(torch.abs(x_tr - x_opt), dim=0).values
+            L = torch.clamp(2.0 * max_dist, min=self.L_min, max=self.L_max)
+            x_L = torch.clamp(x_opt - (L / 2.0), 0.0, 1.0)
+            x_U = torch.clamp(x_opt + (L / 2.0), 0.0, 1.0)
 
         return x_L, x_U, x_tr, y_tr, L
 
@@ -121,7 +147,7 @@ class ATR_warped_PFN():
         z_acq_points = z_unit * u
         return z_acq_points
 
-    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, return_prediction=True):
+    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, k_min_samples=4, return_prediction=True):
         # Make sure all on correct device
         x = x.to(device=self.device)
         y = y.to(device=self.device)
@@ -132,11 +158,17 @@ class ATR_warped_PFN():
 
         # Compute roughness parameter and find trust region
         R = self.secant_approx(y_scaled, x)
-        x_L, x_U, x_tr, y_tr, L = self.formulate_trust_regions(R, x_opt, x, y_scaled)
+        x_L, x_U, x_tr, y_tr, L = self.formulate_trust_regions(
+            R, x_opt, x, y_scaled, k_min_samples=k_min_samples
+        )
 
-        # Implement jitter to prevent crash
-        if torch.std(y_tr) < 1e-4:
-            y_tr = y_tr + 1e-4 * torch.randn_like(y_tr)
+        # Prevent clustered points causing a crash
+        N_tr = len(y_tr)
+        std_tr = torch.std(y_tr, unbiased=False)
+        if torch.isnan(std_tr) or std_tr < 1e-4:
+            y_tr = y_tr + 0.05 * torch.randn_like(y_tr)
+        elif N_tr <= 12:
+            y_tr = y_tr + (0.05 * std_tr) * torch.randn_like(y_tr)
 
         # Warp inputs
         z_tr = self.input_warping(x_tr, x_U, x_L, R)
@@ -163,7 +195,6 @@ class ATR_warped_PFN():
 
         if x_selected.ndim == 1:
             x_selected = x_selected.unsqueeze(0)
-
         if return_prediction:
             mu_US, var_US = self.eval_pfn(z_tr, y_tr, z_selected)
             mu, var = self.unscale_outputs(mu_US, var_US, mu_y, std_y)
