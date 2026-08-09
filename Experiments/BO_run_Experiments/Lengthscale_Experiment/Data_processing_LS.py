@@ -102,6 +102,6 @@ def compute_comparative_metrics(base_save_dir_1: str, base_save_dir_2: str):
 
 if __name__ == "__main__":
     # Substitute with your actual base_save_dir
-    base_dir_1 = "results_LS_BO_PFN_GP/run_N_50_D_1" 
-    base_dir_2 = "results_LS_BO_ATR_PFN/run_N_50_D_1_mode_k4" 
+    base_dir_1 = "results_LS_BO_PFN_GP/run_N_50_D_2" 
+    base_dir_2 = "results_LS_BO_ATR_PFN/run_N_50_D_2_mode_k4_restarts" 
     compute_comparative_metrics(base_dir_1, base_dir_2)
