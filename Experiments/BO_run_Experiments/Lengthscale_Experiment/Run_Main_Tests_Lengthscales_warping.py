@@ -94,7 +94,7 @@ def main():
                 
                 # Run PFN experiment
                 x_query_arr_PFN, _, y_true_arr_PFN, _, y_best_arr_PFN, mu_arr_PFN, var_arr_PFN, alpha_arr_PFN, tr_arr_PFN = Experiment_ATR_PFN(
-                    ATR_pfn, rff_sampler, x_train, N_iters, n_acq_points=n_samples, restarts=True
+                    ATR_pfn, rff_sampler, x_train, N_iters, n_acq_points=n_samples, restarts=False
                 )
     
                 # Store Data (in_dim, method, test_iter, opt_iter, data)
