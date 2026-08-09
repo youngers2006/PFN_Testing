@@ -40,7 +40,7 @@ def main():
     lengthscales = [[0.021, 0.1385], [0.1385, 0.1385], [1.5, 0.1385]]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 9
+    n_tests = 3
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
