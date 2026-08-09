@@ -9,7 +9,7 @@ from RFF import RFFSampler
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_PFN_GP/run_N_50_D_5"
+    base_save_dir = f"results_LS_AI_BO_PFN_GP/run_N_50_D_2_UML"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
