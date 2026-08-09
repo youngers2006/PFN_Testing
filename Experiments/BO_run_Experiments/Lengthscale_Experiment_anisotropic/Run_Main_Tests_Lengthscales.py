@@ -83,7 +83,7 @@ def main():
                     num_features=features, 
                     input_dim=x_dim,
                     number_of_functions=n_fns, 
-                    lengthscale = lengthscale, 
+                    lengthscales = lengthscale, 
                     amplitude = amplitude,
                     kernel=kernel
                 )
