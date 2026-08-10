@@ -10,7 +10,7 @@ from ATR_warping import ATR_warped_PFN
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode_k2_restarts"
+    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode_k4_restarts_std"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -41,7 +41,7 @@ def main():
     lengthscales = [0.021, 0.03, 0.05, 0.07, 0.1, 0.1385, 0.4, 0.8, 1.5]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 9
+    n_tests = 3
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -72,6 +72,12 @@ def main():
     )
 
     for test in range(n_tests):
+        if test == 0:
+            test_idx = 1
+        elif test == 1:
+            test_idx = 5
+        elif test == 2:
+            test_idx = 8
         
         for k in range(n_dims):
             x_dim = x_dims[k]
