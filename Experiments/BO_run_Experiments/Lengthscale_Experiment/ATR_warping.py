@@ -159,7 +159,7 @@ class ATR_warped_PFN():
         z_acq_points = z_unit * u
         return z_acq_points
 
-    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, k_min_samples=2, return_prediction=True):
+    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, k_min_samples=4, return_prediction=True):
         # Make sure all on correct device
         x = x.to(device=self.device)
         y = y.to(device=self.device)
