@@ -85,7 +85,7 @@ class ATR_warped_PFN():
         R = 1.0 / (l_opt + self.eps)
         return R
     
-    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=2):
+    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=4):
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
