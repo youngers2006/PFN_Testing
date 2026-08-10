@@ -85,7 +85,7 @@ class ATR_warped_PFN():
         R = 1.0 / (l_opt + self.eps)
         return R
     
-    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=2):
+    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=4):
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
@@ -159,7 +159,7 @@ class ATR_warped_PFN():
         z_acq_points = z_unit * u
         return z_acq_points
 
-    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, k_min_samples=4, return_prediction=True):
+    def observe_and_suggest(self, x, y, x_opt, n_acq_points=10000, k_min_samples=2, return_prediction=True):
         # Make sure all on correct device
         x = x.to(device=self.device)
         y = y.to(device=self.device)
@@ -171,7 +171,7 @@ class ATR_warped_PFN():
         # Compute roughness parameter and find trust region
         R = self.KTA_approx(y_scaled, x)
         x_L, x_U, x_tr, y_tr, L = self.formulate_trust_regions(
-            R, x_opt, x, y, k_min_samples=k_min_samples
+            R, x_opt, x, y_scaled, k_min_samples=k_min_samples
         )
 
         # Prevent clustered points causing a crash
