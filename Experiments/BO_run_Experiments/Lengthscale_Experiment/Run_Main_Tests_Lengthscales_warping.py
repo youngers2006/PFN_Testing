@@ -84,7 +84,7 @@ def main():
             
             for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}"):
                 # Save RFF function draw
-                filepath_problem = f"results_LS_BO_PFN_GP/run_N_50_D_2/test_{test}/dim_{x_dim}/repeat_{i}/problem.npz"
+                filepath_problem = f"results_LS_BO_PFN_GP/run_N_50_D_2/test_{test_idx}/dim_{x_dim}/repeat_{i}/problem.npz"
 
                 rff_sampler = RFFSampler(
                     num_features=1,
