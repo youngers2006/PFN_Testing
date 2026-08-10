@@ -58,7 +58,8 @@ class ATR_warped_PFN():
         diff_sq = (x.unsqueeze(1) - x.unsqueeze(0)) ** 2
         
         # Initialise parameter and optimiser
-        log_l = torch.nn.Parameter(torch.zeros(d, dtype=x.dtype, device=x.device))
+        initial_log_l = math.log(self.l_target)
+        log_l = torch.nn.Parameter(initial_log_l * torch.zeros(d, dtype=x.dtype, device=x.device))
         optimizer = torch.optim.Adam([log_l], lr=lr)
 
         sqrt_3 = math.sqrt(3.0)
@@ -84,7 +85,7 @@ class ATR_warped_PFN():
         R = 1.0 / (l_opt + self.eps)
         return R
     
-    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=4):
+    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=2):
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
