@@ -85,7 +85,7 @@ class ATR_warped_PFN():
         R = 1.0 / (l_opt + self.eps)
         return R
     
-    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=4):
+    def formulate_trust_regions(self, R, x_opt, x, y, k_min_samples=2):
         # Guardrails for approximation
         N, d = x.shape
         if N < 2:
@@ -142,7 +142,7 @@ class ATR_warped_PFN():
             _, top_k_idx = torch.topk(dists, k=min(k_min_samples, N), largest=False)
             mask = torch.zeros(N, dtype=torch.bool, device=x.device)
             mask[top_k_idx] = True
-            
+
         x_tr = x[mask]
         y_tr = y[mask]
 
