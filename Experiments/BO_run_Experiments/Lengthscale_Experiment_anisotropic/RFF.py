@@ -138,7 +138,7 @@ class RFFSampler:
         self.weights = torch.as_tensor(npzfile['weights'])
         self.phi = torch.as_tensor(npzfile['phi'])
         self.num_features = int(npzfile['num_features'])
-        self.lengthscales = float(npzfile['lengthscales'])
+        self.lengthscales = list(npzfile['lengthscales'])
         self.variance = float(npzfile['variance'])
         self.input_dim = int(npzfile['input_dim'])
         self.output_dim = int(npzfile['output_dim'])

@@ -10,7 +10,7 @@ from ATR_warping import ATR_warped_PFN
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_ATR_PFN/run_N_50_D_2_mode_k4_restarts"
+    base_save_dir = f"results_LS_AI_BO_PFN_GP/run_N_50_D_2_mode_k4_restarts"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -38,10 +38,10 @@ def main():
     kernel = "Matern32"
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.021, 0.03, 0.05, 0.07, 0.1, 0.1385, 0.4, 0.8, 1.5]
+    lengthscales = [[0.021, 0.1385], [0.1385, 0.1385], [1.5, 0.1385]]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 9
+    n_tests = 3
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -58,7 +58,7 @@ def main():
     alpha_store =   [torch.zeros((n_tests, n_methods_UQ, n_repeats, N_iters, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     tr_store = [torch.zeros((n_tests, n_methods, n_repeats, N_iters, d), dtype=torch.float64, device='cpu') for d in x_dims]
 
-    filepath_data = f"results_LS_BO_PFN_GP/run_N_50_D_2/experimental_results.pt"
+    filepath_data = f"results_LS_AI_BO_PFN_GP/run_N_50_D_2_UML/experimental_results.pt"
     data = torch.load(filepath_data)
     x_init_store = data["x_init"]
     y_init_store = data["y_init"]
@@ -78,13 +78,13 @@ def main():
             
             for i in tqdm(range(n_repeats), desc=f"Running Experiments for dimension set {k} and test {test}"):
                 # Save RFF function draw
-                filepath_problem = f"results_LS_BO_PFN_GP/run_N_50_D_2/test_{test}/dim_{x_dim}/repeat_{i}/problem.npz"
+                filepath_problem = f"results_LS_AI_BO_PFN_GP/run_N_50_D_2_UML/test_{test}/dim_{x_dim}/repeat_{i}/problem.npz"
 
                 rff_sampler = RFFSampler(
                     num_features=1,
                     input_dim=1,
                     number_of_functions=1,
-                    lengthscale = 1, 
+                    lengthscales = [1, 1], 
                     amplitude = 1,
                 )
                 rff_sampler.load_problem_from_file(filepath_problem)
