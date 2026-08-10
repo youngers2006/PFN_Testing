@@ -136,6 +136,13 @@ class ATR_warped_PFN():
         # Only use the x and y samples inside the trust region
         in_tr = (x >= x_L) & (x <= x_U)
         mask = torch.all(in_tr, dim=-1)
+
+        if torch.sum(mask) < k_min_samples:
+            dists = torch.norm(x - x_opt, dim=-1)
+            _, top_k_idx = torch.topk(dists, k=min(k_min_samples, N), largest=False)
+            mask = torch.zeros(N, dtype=torch.bool, device=x.device)
+            mask[top_k_idx] = True
+            
         x_tr = x[mask]
         y_tr = y[mask]
 
