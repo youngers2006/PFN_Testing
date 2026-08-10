@@ -166,13 +166,16 @@ class ATR_warped_PFN():
         x_opt = x_opt.to(device=self.device)
 
         # Standardise y
-        y_scaled, mu_y, std_y = self.standardise(y)
+        y_scaled_whole, _, _ = self.standardise(y)
 
         # Compute roughness parameter and find trust region
-        R = self.KTA_approx(y_scaled, x)
+        R = self.KTA_approx(y_scaled_whole, x)
         x_L, x_U, x_tr, y_tr, L = self.formulate_trust_regions(
-            R, x_opt, x, y_scaled, k_min_samples=k_min_samples
+            R, x_opt, x, y, k_min_samples=k_min_samples
         )
+
+        # Standardise actual PFN inputs
+        y_tr, mu_y_tr, std_y_tr = self.standardise(y_tr)
 
         # Prevent clustered points causing a crash
         std_tr = torch.std(y_tr, unbiased=False)
@@ -211,7 +214,7 @@ class ATR_warped_PFN():
             x_selected = x_selected.unsqueeze(0)
         if return_prediction:
             mu_US, var_US = self.eval_pfn(z_tr, y_tr, z_selected)
-            mu, var = self.unscale_outputs(mu_US, var_US, mu_y, std_y)
+            mu, var = self.unscale_outputs(mu_US, var_US, mu_y_tr, std_y_tr)
             return x_selected, acq_value, L, mu, var
         else:
             return x_selected, acq_value, L
