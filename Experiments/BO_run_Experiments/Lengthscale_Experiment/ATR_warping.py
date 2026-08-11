@@ -138,7 +138,9 @@ class ATR_warped_PFN():
         mask = torch.all(in_tr, dim=-1)
 
         if torch.sum(mask) < k_min_samples:
-            dists = torch.norm(x - x_opt, dim=-1)
+            dist_warped = torch.abs(x - x_opt) / (L_raw + self.eps)
+            dists = torch.max(dist_warped, dim=-1).values
+            
             _, top_k_idx = torch.topk(dists, k=min(k_min_samples, N), largest=False)
             mask = torch.zeros(N, dtype=torch.bool, device=x.device)
             mask[top_k_idx] = True
