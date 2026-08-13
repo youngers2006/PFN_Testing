@@ -28,7 +28,7 @@ def main():
     features = 10000
     x_dims = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     n_fns = 1
-    
+
     bounds_list = []
     for i in range(len(x_dims)):
         lb = []
@@ -44,7 +44,7 @@ def main():
     kernel = "Matern32"
 
     # number of initialisation points
-    n_init = 10 * x_dims
+    n_init = 20 * x_dims
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscales = [0.021, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.1385, 0.2, 0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 1.7, 2.0]
