@@ -115,7 +115,7 @@ def main():
     
                 # Test PFN model fit
                 mu_arr_PFN, var_arr_PFN, y_true_arr_PFN = plot_pfn_variance_surface(
-                    pfn, x_train, y_train, x_queries, y_true, n_samples=n_samples, warping=False, device=device
+                    pfn, x_train, y_train, x_queries, y_true, n_samples=n_samples, device=device
                 )
 
                 # Store initialising data
