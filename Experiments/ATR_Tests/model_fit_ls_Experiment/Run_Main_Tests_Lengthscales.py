@@ -63,8 +63,8 @@ def main():
     y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
-    x_init_store =  [torch.zeros((n_tests, n_repeats, n_init, d), dtype=torch.float64, device='cpu') for d in x_dims]
-    y_init_store =  [torch.zeros((n_tests, n_repeats, n_init, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
+    x_init_store =  [torch.zeros((n_tests, n_repeats, 20 * d, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    y_init_store =  [torch.zeros((n_tests, n_repeats, 20 * d, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
 
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
