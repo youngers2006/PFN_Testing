@@ -30,7 +30,7 @@ def plot_GP_variance_surface(train_x, train_y, x_queries, y_true, n_samples=1000
     matern_32 = MaternKernel(
         nu=1.5, 
         ard_num_dims=D,
-        lengthscale_prior=SmoothedBoxPrior(a=0.02 * (D ** 0.5), b=2.5 * (D ** 0.5), sigma=0.01)
+        lengthscale_prior=SmoothedBoxPrior(a=0.015, b=2.5, sigma=0.01)
     )
     matern_32.raw_lengthscale_constraint = gpytorch.constraints.GreaterThan(1e-4)
     custom_covar = ScaleKernel(
