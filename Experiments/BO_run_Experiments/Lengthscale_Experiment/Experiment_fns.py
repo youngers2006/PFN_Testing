@@ -42,7 +42,7 @@ def Experiment_GP(rff_sampler: RFFSampler, x_train, N_iters, sobol_acq_points):
         matern_32 = MaternKernel(
             nu=1.5, 
             ard_num_dims=D,
-            lengthscale_prior=SmoothedBoxPrior(a=0.02 * (D ** 0.5), b=2.5 * (D ** 0.5), sigma=0.01)
+            lengthscale_prior=SmoothedBoxPrior(a=0.015, b=2.5, sigma=0.01)
         )
         matern_32.raw_lengthscale_constraint = gpytorch.constraints.GreaterThan(1e-4)
         custom_covar = ScaleKernel(

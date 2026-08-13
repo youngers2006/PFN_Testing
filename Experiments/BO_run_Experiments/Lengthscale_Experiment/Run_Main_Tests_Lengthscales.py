@@ -9,7 +9,7 @@ from RFF import RFFSampler
 
 def main():
     # Save paths
-    base_save_dir = f"results_LS_BO_PFN_GP/run_N_150_D_2"
+    base_save_dir = f"results_LS_BO_PFN_GP/run_N_50_D_125"
     os.makedirs(base_save_dir, exist_ok=True)
 
     # Device
@@ -25,22 +25,30 @@ def main():
     n_methods = 3
     n_methods_UQ = 2
     n_dims = 1
-    N_iters = 150
+    N_iters = 50
     features = 10000
-    x_dims = [2]
+    x_dims = [1, 2, 5]
     n_fns = 1
+
     bounds_list = []
-    bounds_list.append(torch.tensor([[0.0, 0.0], [1.0, 1.0]], dtype=torch.float64, device=device))
+    for i in range(len(x_dims)):
+        lb = []
+        ub = []
+        for _ in range(x_dims[i]):
+            lb.append(0.0)
+            ub.append(1.0)
+        bounds_list.append(torch.tensor([lb, ub], dtype=torch.float64, device=device))
+
     n_samples = 100000
     seed = 42
     seed_init = 10
     kernel = "Matern32"
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
-    lengthscales = [0.021, 0.1385, 1.5]
+    lengthscales = [0.021, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.1385, 0.2, 0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 1.7, 2.0]
     amplitude = 1.0
     lengthscale_store = torch.tensor([lengthscales], device='cpu')
-    n_tests = 3
+    n_tests = 17
 
     torch.manual_seed(seed)
     if torch.cuda.is_available():
