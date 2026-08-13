@@ -44,7 +44,7 @@ def main():
     kernel = "Matern32"
 
     # number of initialisation points
-    n_init = 20 * x_dims
+    n_init = 20
 
     # Gamma distribution parameters for lengthscale and variance RFF parameters
     lengthscales = [0.021, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.1385, 0.2, 0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 1.7, 2.0]
@@ -63,8 +63,8 @@ def main():
     y_true_store =  [torch.zeros((n_tests, n_methods, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     mu_store =      [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
     var_store =     [torch.zeros((n_tests, n_methods_UQ, n_repeats, n_samples, n_fns), dtype=torch.float64, device='cpu') for _ in x_dims]
-    x_init_store =  [torch.zeros((n_tests, n_repeats, 20 * d, d), dtype=torch.float64, device='cpu') for d in x_dims]
-    y_init_store =  [torch.zeros((n_tests, n_repeats, 20 * d, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
+    x_init_store =  [torch.zeros((n_tests, n_repeats, n_init * d, d), dtype=torch.float64, device='cpu') for d in x_dims]
+    y_init_store =  [torch.zeros((n_tests, n_repeats, n_init * d, n_fns), dtype=torch.float64, device='cpu') for d in x_dims]
 
     # Create PFN
     model_path = pfns4bo.hebo_plus_model
@@ -98,7 +98,7 @@ def main():
                 # Sample space
                 x_train = generate_sobol_points(
                     bounds,
-                    n_init,
+                    n_init * x_dim,
                     seed_init + i + (k * n_repeats),
                     device
                 )
